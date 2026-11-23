@@ -81,7 +81,9 @@ def eval_charts(n: int = 4, seed: int = 10_000, cfg: GeneratorConfig | None = No
 def evaluate(agent: Agent, charts: list[Chart], env_cfg: EnvConfig | None = None) -> dict:
     stats = [run_episode(agent, c, env_cfg) for c in charts]
     acc = [s["accuracy"] for s in stats]
+    empty = sum(s["empty"] for s in stats) / max(1, sum(s["total"] for s in stats))
     return {
         "accuracy": float(np.mean(acc)),
+        "emptyPerNote": round(float(empty), 4),  # 판정 대상 1개당 헛누름 횟수
         "perCharts": [{"chart": c.id, **s} for c, s in zip(charts, stats, strict=True)],
     }
