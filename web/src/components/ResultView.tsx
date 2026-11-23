@@ -127,9 +127,6 @@ function PlayerCard({
         <span>
           MAX COMBO <b>{stats.maxCombo}</b>
         </span>
-        <span>
-          헛누름 <b>{stats.empty}</b>
-        </span>
       </div>
     </section>
   );
