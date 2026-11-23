@@ -51,18 +51,21 @@ profiles:
     max_inputs_per_neuron: 64   # 뉴런마다 가장 강한 입력 연결만 남김 (0 = 제한 없음)
     include_mushroom_body: true
     mb_path: 3                  # 입력→KC, MBON→출력 경로 길이
+    mb_min_weight: 2            # KC 입력·KC→MBON 연결의 최소 시냅스 수
   medium:
     max_path: 5
     min_weight: 5
     max_inputs_per_neuron: 64
     include_mushroom_body: true
     mb_path: 4
+    mb_min_weight: 2
   full:
     max_path: 0                 # 0 = 모든 Traced 뉴런
     min_weight: 3
     max_inputs_per_neuron: 0
     include_mushroom_body: true
     mb_path: 0
+    mb_min_weight: 2
 
 simulation:
   dt_ms: 2.0
@@ -73,3 +76,6 @@ simulation:
   input_gain: 1.0
   bias: -0.15               # 음수 = 발화 문턱
   normalize_alpha: 0.5      # W / (입력 시냅스 합)^alpha
+  kc_sparsity: 0.05         # APL 피드백 억제 근사: 매 순간 상위 5% KC 만 활성 (0 = 끔)
+  kc_gain: 10.0             # KC 는 약한 입력을 많이 받으므로 입력을 증폭
+  kc_bias: 0.15             # 전역 bias(-0.15)를 KC 에서는 상쇄 (희소성은 kc_sparsity 가 담당)

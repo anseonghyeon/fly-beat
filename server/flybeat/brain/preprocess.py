@@ -7,6 +7,7 @@
 - neurons.feather: 행렬 인덱스 ↔ bodyId, type, class, side, nt, sign
 - groups.json    : 입력/출력/DAN/KC/MBON 뉴런 인덱스
 - dan.npz        : DAN → KC·MBON 연결 (모드 C 의 도파민 구획 정보)
+- plastic.npz    : KC → MBON 연결 목록 (모드 C 에서 가소성을 허용하는 시냅스)
 - meta.json      : 크기, 설정, 원본 파일 정보
 """
 
@@ -26,7 +27,7 @@ import scipy.sparse as sp
 from flybeat import paths
 from flybeat.brain.config import load_brain_config, profile_config
 
-FORMAT_VERSION = 2
+FORMAT_VERSION = 3
 
 
 def log(msg: str) -> None:
@@ -196,10 +197,12 @@ def preprocess(profile: str, out_root: Path | None = None) -> Path:
     groups = build_groups(neu, cfg)
 
     min_w = max(int(prof["min_weight"]), 1)
-    pi, qi, w = load_edges(neu["bodyId"].to_numpy(), min_w)
-    log(f"연결 {len(w):,}개 (weight ≥ {min_w}), {time.time() - t0:.1f}s")
+    mb_w = max(int(prof.get("mb_min_weight", min_w)), 1)
+    pi, qi, w = load_edges(neu["bodyId"].to_numpy(), min(min_w, mb_w))
+    log(f"연결 {len(w):,}개 (weight ≥ {min(min_w, mb_w)}), {time.time() - t0:.1f}s")
 
-    keep = select_subnetwork(len(neu), pi, qi, groups, prof)
+    strong = w >= min_w  # 서브네트워크 탐색은 강한 연결로만
+    keep = select_subnetwork(len(neu), pi[strong], qi[strong], groups, prof)
     log(f"서브네트워크 뉴런 {keep.sum():,}개")
 
     # 새 인덱스로 다시 매김
@@ -228,12 +231,27 @@ def preprocess(profile: str, out_root: Path | None = None) -> Path:
     de = is_dan[pi] & mb_targets[qi]
     dan_pre, dan_post, dan_w = pi[de], qi[de], w[de]
 
-    # 빠른 전달 행렬: 부호 0 제외, post 마다 상위 k 입력
-    fast = sign[pi] != 0
-    pi, qi, w = pi[fast], qi[fast], w[fast]
-    tk = top_k_inputs(qi, w, prof["max_inputs_per_neuron"])
-    pi, qi, w = pi[tk], qi[tk], w[tk]
+    # 버섯체 특례 (docs/brain-notes.md):
+    # - KC→KC 연결은 뺀다 (율 모델에서 폭주를 일으킴)
+    # - KC 가 받는 입력, KC→MBON 연결은 약한 시냅스(mb_min_weight)까지 남기고
+    #   상위 k 제한도 하지 않는다
     n = len(sub)
+    is_kc = np.zeros(n, dtype=bool)
+    is_kc[groups["kc"]] = True
+    is_mbon = np.zeros(n, dtype=bool)
+    is_mbon[groups["mbon"]] = True
+    kc_in = is_kc[qi] & ~is_kc[pi] & (w >= mb_w)
+    kc_mbon = is_kc[pi] & is_mbon[qi] & (w >= mb_w)
+    base = (w >= min_w) & ~(is_kc[pi] & is_kc[qi]) & ~kc_in & ~kc_mbon
+
+    # 빠른 전달 행렬: 부호 0 제외, (버섯체 특례가 아닌) post 마다 상위 k 입력
+    fast = sign[pi] != 0
+    tk = np.zeros(len(w), dtype=bool)
+    b = base & fast
+    tk[np.flatnonzero(b)] = top_k_inputs(qi[b], w[b], prof["max_inputs_per_neuron"])
+    sel = tk | ((kc_in | kc_mbon) & fast)
+    plastic_pre, plastic_post = pi[kc_mbon & fast], qi[kc_mbon & fast]
+    pi, qi, w = pi[sel], qi[sel], w[sel]
     # 부호 × 시냅스 수 (정규화는 시뮬레이터에서 normalize_alpha 로 한다)
     data = (sign[pi] * w).astype(np.float32)
     W = sp.csr_matrix((data, (qi, pi)), shape=(n, n), dtype=np.float32)
@@ -247,6 +265,7 @@ def preprocess(profile: str, out_root: Path | None = None) -> Path:
         out / "W.npz", indptr=W.indptr, indices=W.indices, data=W.data, shape=np.array(W.shape)
     )
     np.savez_compressed(out / "dan.npz", pre=dan_pre, post=dan_post, weight=dan_w)
+    np.savez_compressed(out / "plastic.npz", pre=plastic_pre, post=plastic_post)
     cols = ["bodyId", "type", "class", "superclass", "somaSide", "exitNerve", "nt", "sign"]
     sub[cols].reset_index(drop=True).to_feather(out / "neurons.feather")
     (out / "groups.json").write_text(json.dumps(groups), "utf-8")
@@ -263,6 +282,7 @@ def preprocess(profile: str, out_root: Path | None = None) -> Path:
             **{k: len(groups[k]) for k in ("dan_reward", "dan_punish", "kc", "mbon")},
         },
         "dan_edges": int(len(dan_w)),
+        "kc_mbon_edges": int(len(plastic_pre)),
         "source": {p.name: p.stat().st_size for p in (paths.ANNOTATIONS_FILE, paths.WEIGHTS_FILE)},
         "seconds": round(time.time() - t0, 1),
     }
