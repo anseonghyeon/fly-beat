@@ -144,7 +144,6 @@ export default function Lobby() {
   const current = selected;
   const chart = current?.charts.find((c) => c.id === settings.chartId) ?? current?.charts[0];
   const record = chart ? records[chart.id] : undefined;
-  const opponent = ckpts.find((c) => c.id === settings.ckptId);
   const set = useCallback(
     (patch: Partial<PlaySettings>) => setSettings((s) => ({ ...s, ...patch })),
     [],
@@ -396,7 +395,6 @@ export default function Lobby() {
               );
             })}
           </div>
-          <p className="opp-desc">{opponent ? OPPONENTS[opponent.mode].desc : SOLO.desc}</p>
           <button className="start-btn" onClick={start} disabled={!chart}>
             START
           </button>
