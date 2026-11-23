@@ -82,6 +82,7 @@ class Chart:
             "lanes": self.lanes,
             "notes": len(self.notes),
             "durationMs": self.duration_ms,
+            "audio": bool(self.audio),
         }
 
 
@@ -154,6 +155,21 @@ def load_chart(chart_id: str, charts_dir: Path | None = None) -> Chart:
     if chart.id != chart_id:
         raise ChartError("파일 이름과 채보 ID가 다릅니다")
     return chart
+
+
+AUDIO_NAME_RE = re.compile(r"^[a-z0-9][a-z0-9-]{0,63}\.(ogg|mp3|wav)$")
+AUDIO_TYPES = {"ogg": "audio/ogg", "mp3": "audio/mpeg", "wav": "audio/wav"}
+
+
+def audio_path(name: str, charts_dir: Path | None = None) -> Path:
+    """음원 파일 이름 → charts/audio 안의 경로 (형식 검사로 경로 탈출 방지)."""
+    if not AUDIO_NAME_RE.fullmatch(name):
+        raise ChartError("잘못된 음원 이름")
+    base = ((charts_dir or paths.CHARTS_DIR) / "audio").resolve()
+    p = (base / name).resolve()
+    if p.parent != base or not p.is_file():
+        raise FileNotFoundError(name)
+    return p
 
 
 def list_charts(charts_dir: Path | None = None) -> list[Chart]:

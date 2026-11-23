@@ -16,7 +16,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException, Request, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse, JSONResponse
 
 from flybeat import __version__
 from flybeat.agents.checkpoint import CheckpointError, list_checkpoints, load_meta
@@ -24,7 +24,7 @@ from flybeat.api import brain_info
 from flybeat.api.jobs import JobLimitError, TrainingManager, TrainRequest
 from flybeat.api.play import open_session, stream
 from flybeat.api.settings import Settings, settings
-from flybeat.game.chart import ChartError, list_charts, load_chart
+from flybeat.game.chart import AUDIO_TYPES, ChartError, audio_path, list_charts, load_chart
 from flybeat.game.generator import generate_chart
 
 ALLOWED_HOSTS = ["127.0.0.1", "localhost", "[::1]", "testserver"]
@@ -105,6 +105,18 @@ def create_app(cfg: Settings = settings) -> FastAPI:
             return load_chart(chart_id).to_dict()
         except (ChartError, FileNotFoundError):
             raise HTTPException(404, "채보를 찾을 수 없습니다") from None
+
+    @app.get("/api/audio/{name}")
+    def audio(name: str) -> FileResponse:
+        try:
+            p = audio_path(name)
+        except (ChartError, FileNotFoundError):
+            raise HTTPException(404, "음원을 찾을 수 없습니다") from None
+        return FileResponse(
+            p,
+            media_type=AUDIO_TYPES[p.suffix.lstrip(".")],
+            headers={"Cache-Control": "public, max-age=3600"},
+        )
 
     # ------------------------------------------------------------------ 학습
     @app.post("/api/train", status_code=201)

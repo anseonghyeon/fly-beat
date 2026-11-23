@@ -67,6 +67,21 @@ cd server
 
 체크포인트는 `checkpoints/<id>/`에 `model.safetensors`와 `meta.json`으로 저장됩니다.
 
+## 곡과 채보
+
+- 기본 곡: Juhani Junkala의 칩튠 5곡(**CC0**, [OpenGameArt](https://opengameart.org/content/5-chiptunes-action))이에요. 곡마다 쉬움·보통·어려움 채보 3개가 있어서 모두 15개예요. 출처는 [charts/audio/ATTRIBUTION.md](charts/audio/ATTRIBUTION.md)에 있어요.
+- 채보 선택 목록에서 `♪`가 붙은 채보는 실제 음원이 재생돼요. 나머지는 합성 박자 소리가 나요.
+- 내 음원으로 채보 만들기 (WAV·OGG·FLAC 등):
+
+  ```bash
+  cd server
+  .venv/bin/python -m flybeat.game.autochart my-song.wav --id my-song --title "My Song" \
+      --artist "작곡가" --audio-out ../charts/audio/my-song.ogg
+  ```
+
+  박자(BPM)와 강세를 분석해서 `charts/my-song-{easy,normal,hard}.json`을 만들어요. 음은 낮을수록 왼쪽 레인, 높을수록 오른쪽 레인에 놓여요.
+- **저장소에는 재배포가 허용된 음원(CC0, CC BY 등)만 넣으세요.** 상용 곡이나 NCS처럼 게임 사용에 라이선스가 필요한 곡은 로컬에서만 쓰세요.
+
 ## 구조
 
 ```

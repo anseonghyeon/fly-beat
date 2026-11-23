@@ -120,3 +120,12 @@ def test_plasticity_endpoint(synthetic_data, client):
     cid = train(DopamineConfig(profile=synthetic_data, episodes=1, n_envs=2, lr=1.0))
     p = client.get(f"/api/brain/plasticity/{cid}").json()
     assert p["synapses"] > 0 and len(p["histogram"]["counts"]) == 24
+
+
+def test_audio_endpoint(client):
+    r = client.get("/api/audio/junkala-title.ogg")
+    assert r.status_code == 200 and r.headers["content-type"] == "audio/ogg"
+    assert client.get("/api/audio/..%2F..%2Fplan.md").status_code == 404
+    assert client.get("/api/audio/nope.ogg").status_code == 404
+    charts = {c["id"]: c for c in client.get("/api/charts").json()}
+    assert charts["junkala-level-1-normal"]["audio"] is True

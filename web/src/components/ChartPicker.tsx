@@ -14,7 +14,8 @@ export function ChartPicker({ charts, value, onChange, disabled }: Props) {
       <select value={value} disabled={disabled} onChange={(e) => onChange(e.target.value)}>
         {charts.map((c) => (
           <option key={c.id} value={c.id}>
-            {c.title} · {c.bpm} BPM · {c.notes} notes
+            {c.audio ? "♪ " : ""}
+            {c.title} · {Math.round(c.bpm)} BPM · {c.notes} notes
           </option>
         ))}
       </select>

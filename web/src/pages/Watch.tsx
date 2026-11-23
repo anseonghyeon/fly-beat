@@ -158,8 +158,14 @@ export default function Watch() {
         setMode(msg.mode);
         setStatus("playing");
         if (sound) {
-          const ctx = await audio.start();
-          audio.schedule(msg.chart, ctx.currentTime + leadMs / 1000);
+          const chart = msg.chart;
+          void (async () => {
+            const ctx = await audio.start();
+            const music = chart.audio ? await audio.load(chart.audio).catch(() => null) : null;
+            // 화면의 채보 시각 0 = readyAt + leadMs (performance 시계) → AudioContext 시계로 변환
+            const zeroAt = ctx.currentTime + (readyAt + leadMs - performance.now()) / 1000;
+            await audio.playChart(chart, zeroAt, music);
+          })();
         }
         raf = requestAnimationFrame(frame);
       } else if (msg.type === "frames") {
