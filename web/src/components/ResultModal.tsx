@@ -162,7 +162,6 @@ export function ResultModal({
   const fs = fly ? scoreFromStats(fly.client) : 0;
   const mine: Outcome = !fly ? null : hs > fs ? "WIN" : hs < fs ? "LOSE" : "DRAW";
   const theirs: Outcome = !fly ? null : mine === "WIN" ? "LOSE" : mine === "LOSE" ? "WIN" : "DRAW";
-  const consistent = fly?.server ? fly.server.score === fly.client.score : null;
 
   return (
     <div className="modal-backdrop" onClick={onClose}>
@@ -205,26 +204,16 @@ export function ResultModal({
         </div>
 
         <footer className="result-foot">
-          {consistent !== null && (
-            <span className={consistent ? "ok-note" : "bad-note"}>
-              {consistent
-                ? "✓ 브라우저(TS)와 서버(Python) 판정 일치"
-                : `판정 불일치: 브라우저 ${fly?.client.accuracy}% / 서버 ${fly?.server?.accuracy}%`}
-            </span>
-          )}
           {onLobby && (
             <button className="result-secondary" onClick={onLobby}>
               로비로
             </button>
           )}
           {onRetry && (
-            <button className="result-secondary" onClick={onRetry}>
+            <button ref={closeRef} className="result-close" onClick={onRetry}>
               다시 하기
             </button>
           )}
-          <button ref={closeRef} className="result-close" onClick={onClose}>
-            닫기 <kbd>Esc</kbd>
-          </button>
         </footer>
       </div>
     </div>
