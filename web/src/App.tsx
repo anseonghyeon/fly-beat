@@ -1,28 +1,13 @@
 import { Navigate, NavLink, Route, Routes } from "react-router-dom";
+import { FlyIcon } from "./components/Logo";
+import { Splash } from "./components/Splash";
 import Brain from "./pages/Brain";
+import Lobby from "./pages/Lobby";
 import Play from "./pages/Play";
 import Train from "./pages/Train";
 
-function FlyIcon() {
-  return (
-    <svg
-      width="22"
-      height="22"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      aria-hidden
-    >
-      <ellipse cx="12" cy="14" rx="3" ry="5" />
-      <circle cx="12" cy="7.5" r="2" />
-      <path d="M9.5 12C6 9 3 9.5 3 12s3 3 6.5 1.5M14.5 12C18 9 21 9.5 21 12s-3 3-6.5 1.5" />
-    </svg>
-  );
-}
-
 const NAV = [
-  { to: "/", label: "Play" },
+  { to: "/", label: "Lobby" },
   { to: "/train", label: "Train" },
   { to: "/brain", label: "Brain" },
 ];
@@ -30,10 +15,11 @@ const NAV = [
 export default function App() {
   return (
     <div className="app">
+      <Splash />
       <header className="topbar">
-        <div className="brand">
+        <NavLink to="/" className="brand">
           <FlyIcon /> fly-beat
-        </div>
+        </NavLink>
         <nav className="nav">
           {NAV.map((n) => (
             <NavLink key={n.to} to={n.to} end>
@@ -44,10 +30,12 @@ export default function App() {
       </header>
       <main>
         <Routes>
-          <Route path="/" element={<Play />} />
+          <Route path="/" element={<Lobby />} />
+          <Route path="/play" element={<Play />} />
           <Route path="/watch" element={<Navigate to="/" replace />} />
           <Route path="/train" element={<Train />} />
           <Route path="/brain" element={<Brain />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
     </div>

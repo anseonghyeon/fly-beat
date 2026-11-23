@@ -4,13 +4,26 @@
  */
 import type { Chart } from "./types";
 
+/**
+ * 앱 전체가 함께 쓰는 AudioContext. 브라우저는 사용자 동작(클릭 등) 안에서 만든 오디오만 재생을 허락하므로
+ * 로비의 START 클릭에서 unlockAudio() 를 불러 두면, 화면이 바뀐 뒤에도 바로 소리를 낼 수 있다.
+ */
+let shared: AudioContext | null = null;
+
+export function unlockAudio(): AudioContext {
+  if (!shared || shared.state === "closed") shared = new AudioContext();
+  if (shared.state === "suspended") void shared.resume();
+  return shared;
+}
+
 export class SynthAudio {
   private ctx: AudioContext | null = null;
   private master: GainNode | null = null;
+  private nodes: AudioScheduledSourceNode[] = [];
 
   async start(): Promise<AudioContext> {
     if (!this.ctx) {
-      this.ctx = new AudioContext();
+      this.ctx = unlockAudio();
       this.master = this.ctx.createGain();
       this.master.gain.value = 0.35;
       this.master.connect(this.ctx.destination);
@@ -31,6 +44,7 @@ export class SynthAudio {
     osc.connect(g).connect(this.master!);
     osc.start(at);
     osc.stop(at + dur + 0.02);
+    this.nodes.push(osc);
   }
 
   /** 채보 시각 0 이 AudioContext 시각 `zeroAt` 이 되도록 박자와 노트 소리를 예약한다. */
@@ -65,6 +79,7 @@ export class SynthAudio {
     const gain = this.ctx.createGain();
     gain.gain.value = 2.2; // master(0.35) 를 상쇄해 원음에 가깝게
     src.connect(gain).connect(this.master);
+    this.nodes.push(src);
     const now = this.ctx.currentTime;
     if (zeroAt >= now) src.start(zeroAt);
     else src.start(now, now - zeroAt);
@@ -81,11 +96,18 @@ export class SynthAudio {
     this.blip(this.ctx.currentTime, 1800, 0.04, 0.15, "square");
   }
 
+  /** 이 세션이 예약한 소리를 모두 멈춘다 (공유 AudioContext 는 닫지 않는다). */
   async stop(): Promise<void> {
-    if (this.ctx) {
-      await this.ctx.close();
-      this.ctx = null;
-      this.master = null;
+    for (const n of this.nodes) {
+      try {
+        n.stop();
+      } catch {
+        /* 이미 끝난 소리 */
+      }
     }
+    this.nodes = [];
+    this.master?.disconnect();
+    this.master = null;
+    this.ctx = null;
   }
 }

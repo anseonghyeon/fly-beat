@@ -6,23 +6,23 @@
  * 브라우저는 LEAD_IN 만큼 늦게 재생해 버퍼로 쓴다.
  */
 import { useCallback, useEffect, useRef, useState } from "react";
+import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import { api, wsUrl } from "../api/client";
-import type { Activity, CheckpointSummary, Frame, Mode, PlayMessage } from "../api/types";
+import type { Activity, Frame, Mode, PlayMessage } from "../api/types";
 import { BrainPanel } from "../components/BrainPanel";
-import { ChartPicker } from "../components/ChartPicker";
 import { ResultModal, type MatchResult } from "../components/ResultModal";
 import { SynthAudio } from "../game/audio";
 import { JudgeEngine } from "../game/engine";
 import { LANE_KEY_CODES, LANE_KEY_LABELS, LANE_KEYS_TEXT } from "../game/keys";
 import { FlyRenderer, REGION_COLORS, type Layout, type ViewName } from "../game/flyRenderer";
 import { canvasSize, drawFrame, HitEffects, scoreOf, type LastJudgment } from "../game/renderer";
-import type { Chart, ChartSummary, JudgeEvent, Stats } from "../game/types";
+import { loadSettings, type PlaySettings } from "../game/settings";
+import type { Chart, JudgeEvent, Stats } from "../game/types";
 import { VersusHud, type HudState } from "../components/VersusHud";
 
 const KEYS: readonly string[] = LANE_KEY_CODES;
 const KEY_LABELS = [...LANE_KEY_LABELS];
 const LEAD_IN_S = 1.0;
-const NO_FLY = "";
 
 const MODE_NAME: Record<Mode, string> = {
   A: "A · MLP (초파리 아님)",
@@ -67,12 +67,18 @@ function openFly(
 }
 
 export default function Play() {
-  const [charts, setCharts] = useState<ChartSummary[]>([]);
-  const [ckpts, setCkpts] = useState<CheckpointSummary[]>([]);
-  const [chartId, setChartId] = useState("tutorial-steps");
-  const [ckptId, setCkptId] = useState<string>(NO_FLY);
-  const [speed, setSpeed] = useState(0.6);
-  const [sound, setSound] = useState(true);
+  // 로비에서 넘겨준 설정 (새로고침이면 마지막으로 저장된 설정)
+  const location = useLocation();
+  const [settings] = useState<PlaySettings | null>(
+    () => (location.state as PlaySettings | null) ?? loadSettings(),
+  );
+  if (!settings) return <Navigate to="/" replace />;
+  return <PlaySession settings={settings} />;
+}
+
+function PlaySession({ settings }: { settings: PlaySettings }) {
+  const { chartId, ckptId, speed, sound } = settings;
+  const navigate = useNavigate();
   const [status, setStatus] = useState<Status>("idle");
   const [error, setError] = useState<string | null>(null);
   const [flyMode, setFlyMode] = useState<Mode | null>(null);
@@ -87,20 +93,10 @@ export default function Play() {
   const bodyCanvas = useRef<HTMLCanvasElement>(null);
   const flyRenderer = useRef<FlyRenderer | null>(null);
   const stopRef = useRef<(() => void) | null>(null);
+  /** 세션 번호. 바뀌면 진행 중이던 준비(await)를 그만둔다 (중지·다시 하기·페이지 이탈). */
+  const sessionRef = useRef(0);
 
   useEffect(() => {
-    api
-      .charts()
-      .then(setCharts)
-      .catch(() => setError("채보 목록을 불러오지 못했습니다. 서버가 켜져 있는지 확인하세요."));
-    api
-      .get<CheckpointSummary[]>("/api/checkpoints")
-      .then((cs) => {
-        setCkpts(cs);
-        const c = cs.find((x) => x.mode === "B") ?? cs[0];
-        if (c) setCkptId(c.id);
-      })
-      .catch(() => undefined);
     api
       .get<Layout>("/api/brain/layout/compact")
       .then((l) => {
@@ -119,10 +115,17 @@ export default function Play() {
       flyRenderer.current.draw(c, null, [false, false, false, false], 0);
   }, [view, layout, status]);
 
-  const stop = useCallback(() => stopRef.current?.(), []);
+  const stop = useCallback(() => {
+    sessionRef.current++;
+    stopRef.current?.();
+    setStatus("idle");
+  }, []);
 
   const start = useCallback(async () => {
+    sessionRef.current++;
     stopRef.current?.();
+    const session = sessionRef.current;
+    const alive = () => sessionRef.current === session;
     setError(null);
     setResult(null);
     setActivity(null);
@@ -136,6 +139,7 @@ export default function Play() {
       setStatus("idle");
       return;
     }
+    if (!alive()) return;
     const hCanvas = humanCanvas.current;
     const fCanvas = flyCanvas.current;
     if (!hCanvas || !fCanvas) {
@@ -151,6 +155,10 @@ export default function Play() {
         setError("음원을 불러오지 못해 합성음으로 진행합니다");
         return null;
       });
+    }
+    if (!alive()) {
+      await audio.stop();
+      return;
     }
 
     // 초파리 세션 (선택)
@@ -173,6 +181,11 @@ export default function Play() {
         setError(`초파리를 불러오지 못했습니다: ${(e as Error).message}`);
         await audio.stop();
         setStatus("idle");
+        return;
+      }
+      if (!alive()) {
+        ws.close();
+        await audio.stop();
         return;
       }
     }
@@ -329,10 +342,21 @@ export default function Play() {
     raf = requestAnimationFrame(frame);
   }, [chartId, ckptId, speed, sound]);
 
+  // 들어오자마자 바로 시작
+  useEffect(() => {
+    // 다음 틱에 시작 (개발 모드 StrictMode 의 마운트-해제-마운트에서 한 번만 시작되도록)
+    const t = window.setTimeout(() => void start(), 0);
+    return () => {
+      window.clearTimeout(t);
+      stop();
+    };
+    // 설정은 이 화면에서 바뀌지 않으므로 처음 한 번만
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const toLobby = useCallback(() => navigate("/"), [navigate]);
   const { width, height } = canvasSize(4);
-  const busy = status !== "idle";
-  const selected = ckpts.find((c) => c.id === ckptId);
-  const flyLabel = selected ? MODE_NAME[selected.mode] : "초파리 없음";
+  const flyLabel = !ckptId ? "혼자 플레이" : flyMode ? MODE_NAME[flyMode] : "불러오는 중…";
 
   return (
     <div className="versus">
@@ -349,62 +373,27 @@ export default function Play() {
       <section className="center">
         {status === "playing" && hud && (
           <div className="panel hud-panel">
-            <VersusHud hud={hud} onStop={stop} />
+            <VersusHud hud={hud} onStop={() => (stop(), toLobby())} />
           </div>
         )}
-        <div className="panel" hidden={status === "playing" && hud !== null}>
-          <h2>대결 설정</h2>
-          <div className="controls">
-            <ChartPicker charts={charts} value={chartId} onChange={setChartId} disabled={busy} />
-            <label className="field">
-              초파리
-              <select value={ckptId} disabled={busy} onChange={(e) => setCkptId(e.target.value)}>
-                <option value={NO_FLY}>없음 (혼자 플레이)</option>
-                {ckpts.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    [{c.mode}] {c.id} · {c.accuracy?.toFixed(1) ?? "-"}%
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="field">
-              노트 속도
-              <input
-                type="number"
-                min={0.2}
-                max={2}
-                step={0.1}
-                value={speed}
-                disabled={busy}
-                onChange={(e) =>
-                  setSpeed(Math.min(2, Math.max(0.2, Number(e.target.value) || 0.6)))
-                }
-              />
-            </label>
-            <label className="field check">
-              <input
-                type="checkbox"
-                checked={sound}
-                disabled={busy}
-                onChange={(e) => setSound(e.target.checked)}
-              />
-              소리
-            </label>
-            {busy ? (
-              <button onClick={stop}>중지</button>
+        {!(status === "playing" && hud) && (
+          <div className="panel hud-panel play-status">
+            {status === "loading" ? (
+              <p className="loading-text">
+                준비 중… {ckptId ? "초파리 뇌 모델을 불러오고 있습니다" : ""}
+              </p>
             ) : (
-              <button className="primary" onClick={() => void start()}>
-                시작
-              </button>
+              <div className="play-actions">
+                <span className="muted">대결이 끝났습니다</span>
+                <button className="primary" onClick={() => void start()}>
+                  다시 하기
+                </button>
+                <button onClick={toLobby}>로비로</button>
+              </div>
             )}
+            {error && <p className="error">{error}</p>}
           </div>
-          <p className="muted small">
-            {status === "loading"
-              ? "준비 중… (초파리 뇌 모델을 불러오고 있습니다)"
-              : `키보드 ${LANE_KEYS_TEXT} 로 왼쪽 레일을 칩니다. 롱노트는 끝까지 누르고 있으세요.`}
-          </p>
-          {error && <p className="error">{error}</p>}
-        </div>
+        )}
 
         <div className="panel">
           <div className="panel-head">
@@ -441,7 +430,7 @@ export default function Play() {
 
         <div className="panel">
           <h2>뇌 활동 수치</h2>
-          <BrainPanel mode={flyMode ?? selected?.mode ?? null} activity={activity} />
+          <BrainPanel mode={flyMode} activity={activity} />
         </div>
       </section>
 
@@ -455,7 +444,17 @@ export default function Play() {
         </div>
       </section>
 
-      {result && <ResultModal result={result} onClose={() => setResult(null)} />}
+      {result && (
+        <ResultModal
+          result={result}
+          onClose={() => setResult(null)}
+          onRetry={() => {
+            setResult(null);
+            void start();
+          }}
+          onLobby={toLobby}
+        />
+      )}
     </div>
   );
 }
