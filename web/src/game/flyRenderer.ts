@@ -7,6 +7,7 @@
  * 몸 윤곽은 뉴런 분포에서 계산한 단순한 도식이다 (실제 외골격 형태가 아님).
  */
 import type { Activity } from "../api/types";
+import { LANE_KEY_LABELS } from "./keys";
 
 export interface Layout {
   n: number;
@@ -355,7 +356,7 @@ export class FlyRenderer {
       ctx.font = `${isDown ? 700 : 500} 11px system-ui, sans-serif`;
       ctx.textAlign = L.side < 0 ? "right" : "left";
       ctx.fillText(
-        `${LEG_NAMES[L.lane]} · ${"DFJK"[L.lane]}`,
+        `${LEG_NAMES[L.lane]} · ${LANE_KEY_LABELS[L.lane]}`,
         tip.x + L.side * 8,
         tip.y + (L.fore < 0 ? -6 : 4),
       );

@@ -1,6 +1,7 @@
 import type { Activity, Mode } from "../api/types";
+import { LANE_KEY_LABELS } from "../game/keys";
 
-const LANE_KEYS = ["D", "F", "J", "K"];
+const LANE_KEYS = LANE_KEY_LABELS;
 const LEG = ["왼 앞다리", "왼 가운뎃다리", "오른 가운뎃다리", "오른 앞다리"];
 
 /** 0~max 값을 순차(단일 색상) 농도로. */
