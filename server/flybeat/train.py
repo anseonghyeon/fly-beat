@@ -37,7 +37,19 @@ def run(mode: str, args: argparse.Namespace) -> str:
 
         cfg = PPOConfig(total_steps=args.steps or 300_000, seed=args.seed)
         return train(cfg, progress=_printer())
-    raise SystemExit(f"모드 {mode} 는 아직 구현되지 않았습니다")
+    if mode == "B":
+        from flybeat.agents.mapping import MappingConfig
+        from flybeat.agents.mapping import train as train_b
+
+        cfg_b = MappingConfig(
+            total_steps=args.steps or 1_000_000, profile=args.profile, seed=args.seed
+        )
+        return train_b(cfg_b, progress=_printer())
+    from flybeat.agents.dopamine import DopamineConfig
+    from flybeat.agents.dopamine import train as train_c
+
+    cfg_c = DopamineConfig(episodes=args.episodes or 64, profile=args.profile, seed=args.seed)
+    return train_c(cfg_c, progress=_printer())
 
 
 def main() -> None:
