@@ -43,7 +43,7 @@ export function VersusHud({ hud, onStop }: { hud: HudState; onStop?: () => void 
         <>
           <div className="hud-lead">
             <div className="hud-lead-label">
-              {lead === 0 ? "동점" : lead > 0 ? "내가 앞서는 중" : "초파리가 앞서는 중"}
+              {lead === 0 ? "동점" : lead > 0 ? "내가 앞서는 중" : "상대가 앞서는 중"}
               <b>{Math.abs(lead).toLocaleString()}</b>
             </div>
             <div className="tug" role="img" aria-label={`점수 차 ${lead}`}>
@@ -60,7 +60,7 @@ export function VersusHud({ hud, onStop }: { hud: HudState; onStop?: () => void 
             </div>
             <span className="rate-tag">RATE</span>
             <div className="fly">
-              <span className="who">초파리</span>
+              <span className="who">{hud.fly.name}</span>
               <b>{hud.fly.rate.toFixed(2)}%</b>
               <span className="muted small">{hud.fly.score.toLocaleString()}</span>
             </div>

@@ -1923,3 +1923,82 @@ kbd {
   background: #ff3d8b;
   color: #021018;
 }
+
+/* 세로가 짧은 화면에서도 스크롤 없이: 로비 왼쪽 카드와 플레이 가운데 열을 높이에 맞춰 줄인다 */
+.song-card {
+  overflow: hidden;
+}
+
+.versus .fly-canvas {
+  height: clamp(170px, calc(100vh - 600px), 300px);
+}
+
+@media (max-height: 880px) {
+  .song-card {
+    gap: 8px;
+    padding: 12px 14px;
+  }
+
+  .song-hero .cover {
+    width: 84px;
+    height: 84px;
+  }
+
+  .song-hero-meta h2 {
+    font-size: 1.4rem;
+  }
+
+  .lanes-badge b {
+    font-size: 1.6rem;
+  }
+
+  .best {
+    padding: 6px 10px;
+    gap: 2px 14px;
+  }
+
+  .dtab {
+    padding: 4px 0;
+  }
+
+  .opp-row {
+    padding: 4px 8px;
+  }
+
+  .song-card .start-btn {
+    padding: 10px;
+    font-size: 1.25rem;
+  }
+
+  .srow .cover {
+    width: 36px;
+    height: 36px;
+  }
+
+  .srow-text b {
+    font-size: 0.95rem;
+  }
+
+  .versus .center {
+    gap: 8px;
+  }
+
+  .versus .center .panel {
+    padding: 8px 12px;
+  }
+
+  .versus .brain-panel h3 {
+    margin-bottom: 2px;
+  }
+}
+
+@media (max-height: 760px) {
+  .song-card-head,
+  .opt-title {
+    display: none;
+  }
+
+  .versus .center p.muted.small {
+    display: none;
+  }
+}
