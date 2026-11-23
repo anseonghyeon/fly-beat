@@ -50,7 +50,8 @@ class DopamineConfig:
     w_max: float = 4.0  # 원래 시냅스 수 대비 최대 배율
     # 학습 신호용 보상 (평가 지표인 정확도에는 영향 없음). None 이면 게임 기본 보상.
     reward_miss: float | None = None
-    reward_empty: float | None = None
+    # 헛누름 처벌. 게임 기본값(-0.1)이면 "자주 눌러서 걸리게 하기"가 이득이라 막 누르게 된다.
+    reward_empty: float | None = -0.3
     seed: int = 0
     lanes: int = 4
 
