@@ -12,7 +12,7 @@ const KEY = "flybeat.playSettings";
 export const DEFAULT_SETTINGS: PlaySettings = {
   chartId: "tutorial-steps",
   ckptId: "",
-  speed: 0.6,
+  speed: 1.1,
   sound: true,
 };
 
@@ -25,7 +25,7 @@ export function loadSettings(): PlaySettings | null {
     return {
       chartId: v.chartId,
       ckptId: v.ckptId,
-      speed: typeof v.speed === "number" ? Math.min(2, Math.max(0.2, v.speed)) : 0.6,
+      speed: typeof v.speed === "number" ? Math.min(2, Math.max(0.2, v.speed)) : 1.1,
       sound: v.sound !== false,
     };
   } catch {
