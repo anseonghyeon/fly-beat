@@ -13,12 +13,13 @@ import { ChartPicker } from "../components/ChartPicker";
 import { ResultModal, type MatchResult } from "../components/ResultModal";
 import { SynthAudio } from "../game/audio";
 import { JudgeEngine } from "../game/engine";
+import { LANE_KEY_CODES, LANE_KEY_LABELS, LANE_KEYS_TEXT } from "../game/keys";
 import { FlyRenderer, REGION_COLORS, type Layout, type ViewName } from "../game/flyRenderer";
 import { canvasSize, drawFrame } from "../game/renderer";
 import type { Chart, ChartSummary, JudgeEvent, Judgment, Stats } from "../game/types";
 
-const KEYS = ["KeyD", "KeyF", "KeyJ", "KeyK"];
-const KEY_LABELS = ["D", "F", "J", "K"];
+const KEYS: readonly string[] = LANE_KEY_CODES;
+const KEY_LABELS = [...LANE_KEY_LABELS];
 const LEAD_IN_S = 1.0;
 const NO_FLY = "";
 
@@ -292,7 +293,7 @@ export default function Play() {
       <section className="rail" aria-label="내 레일">
         <div className="rail-head">
           <b>나</b>
-          <span className="muted small">D F J K</span>
+          <span className="muted small">{LANE_KEYS_TEXT}</span>
         </div>
         <div className="stage">
           <canvas ref={humanCanvas} width={width} height={height} />
@@ -349,7 +350,7 @@ export default function Play() {
           <p className="muted small">
             {status === "loading"
               ? "준비 중… (초파리 뇌 모델을 불러오고 있습니다)"
-              : "키보드 D F J K 로 왼쪽 레일을 칩니다. 롱노트는 끝까지 누르고 있으세요."}
+              : `키보드 ${LANE_KEYS_TEXT} 로 왼쪽 레일을 칩니다. 롱노트는 끝까지 누르고 있으세요.`}
           </p>
           {error && <p className="error">{error}</p>}
         </div>
