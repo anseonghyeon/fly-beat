@@ -61,8 +61,17 @@ def fixed_chart_source(charts: list[Chart]) -> ChartSource:
     return source
 
 
+def obs_size(lanes: int, cfg: EnvConfig) -> int:
+    return 2 * lanes * cfg.bins + 2 * lanes
+
+
+def obs_head_grid(obs: np.ndarray, lanes: int, cfg: EnvConfig) -> np.ndarray:
+    """관측에서 head 격자 (..., lanes, bins) 만 꺼낸다."""
+    return obs[..., : lanes * cfg.bins].reshape(*obs.shape[:-1], lanes, cfg.bins)
+
+
 def observe(engine: JudgeEngine, t: float, cfg: EnvConfig) -> np.ndarray:
-    """관측: [head(lanes×bins), hold(lanes×bins), pressed(lanes)] 를 0~1 로 평탄화.
+    """관측: [head(lanes×bins), hold(lanes×bins), pressed(lanes), next(lanes)] 를 0~1 로 평탄화.
 
     bin 0 은 판정선에서 good 만큼 지난 시각, 마지막 bin 은 lookahead 끝이다.
     """
@@ -91,7 +100,13 @@ def observe(engine: JudgeEngine, t: float, cfg: EnvConfig) -> np.ndarray:
                 b1 = int(min(bins - 1, (n.end - start) // bin_ms))
                 hold[lane, b0 : b1 + 1] = 1.0
     pressed = np.asarray(engine.pressed, dtype=np.float32)
-    return np.concatenate([head.ravel(), hold.ravel(), pressed])
+    # 레인별 다음 노트까지 남은 시간 (판정선 기준, 0 = good 만큼 지남, 1 = lookahead 이상)
+    nxt = np.ones(lanes, dtype=np.float32)
+    for lane in range(lanes):
+        n = engine.next_note(lane)
+        if n is not None:
+            nxt[lane] = min(1.0, max(0.0, (n.t - start) / span))
+    return np.concatenate([head.ravel(), hold.ravel(), pressed, nxt])
 
 
 class RhythmEnv(gym.Env):
@@ -107,7 +122,7 @@ class RhythmEnv(gym.Env):
         self.cfg = config or EnvConfig()
         self.lanes = lanes
         self.chart_source = chart_source or random_chart_source(GeneratorConfig(lanes=lanes))
-        obs_dim = 2 * lanes * self.cfg.bins + lanes
+        obs_dim = obs_size(lanes, self.cfg)
         self.observation_space = spaces.Box(0.0, 1.0, shape=(obs_dim,), dtype=np.float32)
         self.action_space = spaces.MultiBinary(lanes)
         self.engine: JudgeEngine | None = None
