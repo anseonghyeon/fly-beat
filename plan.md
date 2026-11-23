@@ -269,3 +269,18 @@ cd web && npm ci && npm run dev     # http://localhost:5173
 - neuPrint: https://neuprint.janelia.org/
 - FlyWire: https://flywire.ai/
 - 관련 프로젝트: The Driving Fly (Mark Unthank), Fly64 (Jessica Parkett)
+
+## 14. 진행 현황 (2026-11-23)
+
+Phase 0~6을 마쳤다. 결과는 `docs/results.md`, 설계에서 바뀐 부분의 근거는 `docs/brain-notes.md`에 있다.
+
+| 단계 | 상태 | 계획과 달라진 점 |
+|---|---|---|
+| Phase 0 | 완료 | `body-stats` 파일은 쓰지 않는다. 시각 입력은 광수용체 대신 hex 좌표가 있는 L1/L2를 쓴다 |
+| Phase 1 | 완료 | 음원 대신 WebAudio로 박자를 합성한다 |
+| Phase 2 | 완료 | 희소 행렬 곱은 torch 대신 scipy를 쓴다(약 9배 빠름). 기본 프로필은 compact(21,251 뉴런) |
+| Phase 3 | 완료 | 관측에 "레인별 다음 노트까지 남은 시간" 채널을 추가했다 |
+| Phase 4 | 완료 | 리드아웃 대상을 다리 운동 뉴런에서 운동 + 하행 뉴런으로 넓혔다. 감각 매핑 ES 탐색은 옵션(`es_iters`, 기본 0) |
+| Phase 5 | 완료 | KC→KC 제거, KC k-WTA 추가. 도파민 신호는 DAN 자극량(보상 예측 오차)을 DAN→MBON 구획 연결로 전달한다. 리드아웃은 가소성 시냅스의 MBON 입력 전류 |
+| Phase 6 | 완료 | Host·Origin 검사를 추가했다 |
+| Phase 7 | 남음 | 코드 라이선스 결정, CI, 데모 GIF |
