@@ -694,3 +694,174 @@ tr.selected td {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+/* 대결 상황판 (플레이 중) */
+.hud-panel {
+  background: linear-gradient(160deg, #1b1812, #0f0e0b);
+  border-color: #3a3326;
+  color: #ece6d8;
+}
+
+.hud-panel .muted {
+  color: #9c9483;
+}
+
+.hud {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.hud-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.15rem;
+  flex-wrap: wrap;
+}
+
+.hud-stop {
+  margin-left: auto;
+  padding: 3px 12px;
+  background: #2a261d;
+  border-color: #3a3326;
+  color: #ece6d8;
+  font-size: 0.85rem;
+}
+
+.diff {
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  padding: 2px 8px;
+  border-radius: 4px;
+  border: 1px solid currentColor;
+}
+
+.diff.easy {
+  color: #7bd88f;
+}
+
+.diff.normal {
+  color: #6ab0ff;
+}
+
+.diff.hard {
+  color: #ff6b6b;
+}
+
+.hud-progress {
+  height: 4px;
+  background: #2a261d;
+  border-radius: 2px;
+  margin-top: 6px;
+  overflow: hidden;
+}
+
+.hud-progress span {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #f2a93b, #ffe6a6);
+}
+
+.hud-lead-label {
+  display: flex;
+  justify-content: center;
+  align-items: baseline;
+  gap: 10px;
+  font-size: 0.8rem;
+  color: #9c9483;
+  letter-spacing: 0.04em;
+}
+
+.hud-lead-label b {
+  font-size: 1.5rem;
+  color: #ffe6a6;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+}
+
+.tug {
+  position: relative;
+  display: flex;
+  height: 14px;
+  border-radius: 7px;
+  overflow: hidden;
+  margin-top: 6px;
+  background: #2a261d;
+}
+
+.tug span {
+  transition: width 0.15s linear;
+}
+
+.tug-me {
+  background: linear-gradient(90deg, #8a5a12, #f2a93b);
+}
+
+.tug-fly {
+  background: linear-gradient(90deg, #1baf7a, #0c5b40);
+}
+
+.tug-mid {
+  position: absolute;
+  left: 50%;
+  top: -2px;
+  bottom: -2px;
+  width: 2px;
+  background: #ece6d8;
+  opacity: 0.7;
+}
+
+.hud-rates {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 12px;
+  padding-top: 6px;
+  border-top: 1px solid #2a261d;
+}
+
+.hud-rates.solo {
+  grid-template-columns: 1fr;
+}
+
+.hud-rates .me,
+.hud-rates .fly {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.hud-rates .fly {
+  justify-content: flex-end;
+}
+
+.hud-rates .who {
+  font-size: 0.75rem;
+  color: #9c9483;
+}
+
+.hud-rates b {
+  font-size: 1.3rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.hud-rates .me b {
+  color: #f2c14e;
+}
+
+.hud-rates .fly b {
+  color: #3fd19c;
+}
+
+.rate-tag {
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  padding: 3px 10px;
+  border-radius: 3px;
+  background: #f2a93b;
+  color: #1b1505;
+  transform: skewX(-12deg);
+}
