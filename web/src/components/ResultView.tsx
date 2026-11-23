@@ -3,7 +3,6 @@
  * 등급 문자 · 점수 카운트업 · 판정 막대 · FULL COMBO / ALL PERFECT 배지 · 승패
  */
 import { useEffect, useRef, useState } from "react";
-import { LANE_KEYS_TEXT } from "../game/keys";
 import type { Stats } from "../game/types";
 
 export interface MatchResult {
@@ -171,13 +170,7 @@ export function ResultView({
       </header>
 
       <div className={`result-cols ${fly ? "" : "solo"}`}>
-        <PlayerCard
-          who="나"
-          sub={`키 ${LANE_KEYS_TEXT}`}
-          stats={human}
-          outcome={mine}
-          accent="me"
-        />
+        <PlayerCard who="나" stats={human} outcome={mine} accent="me" />
         {fly && (
           <PlayerCard who="상대" sub={fly.name} stats={fly.client} outcome={theirs} accent="fly" />
         )}
