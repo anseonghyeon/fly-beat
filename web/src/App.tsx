@@ -1,5 +1,5 @@
-import { Navigate, NavLink, Route, Routes } from "react-router-dom";
-import { FlyIcon } from "./components/Logo";
+import { Navigate, Route, Routes, useLocation } from "react-router-dom";
+import { EscMenu } from "./components/EscMenu";
 import { Splash } from "./components/Splash";
 import Brain from "./pages/Brain";
 import Lobby from "./pages/Lobby";
@@ -7,28 +7,23 @@ import Play from "./pages/Play";
 import Result from "./pages/Result";
 import Train from "./pages/Train";
 
-const NAV = [
-  { to: "/", label: "Lobby" },
-  { to: "/train", label: "Train" },
-  { to: "/brain", label: "Brain" },
-];
+/** 학습·뇌 보기 화면에는 Esc 메뉴 안내를 작게 띄운다 (로비는 아래 키 안내에 있음) */
+function EscHint() {
+  const { pathname } = useLocation();
+  if (pathname !== "/train" && pathname !== "/brain") return null;
+  return (
+    <div className="esc-hint">
+      <kbd>Esc</kbd> 메뉴
+    </div>
+  );
+}
 
 export default function App() {
   return (
     <div className="app">
       <Splash />
-      <header className="topbar">
-        <NavLink to="/" className="brand">
-          <FlyIcon /> fly-beat
-        </NavLink>
-        <nav className="nav">
-          {NAV.map((n) => (
-            <NavLink key={n.to} to={n.to} end>
-              {n.label}
-            </NavLink>
-          ))}
-        </nav>
-      </header>
+      <EscMenu />
+      <EscHint />
       <main>
         <Routes>
           <Route path="/" element={<Lobby />} />

@@ -68,8 +68,11 @@ const JUDGE_COLOR: Record<Judgment, string> = {
   EMPTY: C.muted,
 };
 
+/** 레일 높이는 화면 높이에 맞춘다 (위아래 여백 20px·테두리 제외, 560~900px) */
 export function canvasSize(lanes: number): { width: number; height: number } {
-  return { width: lanes * LANE_W + GAUGE_W + 2, height: 620 };
+  const viewH = typeof window === "undefined" ? 662 : window.innerHeight;
+  const height = Math.round(Math.max(560, Math.min(900, viewH - 42)));
+  return { width: lanes * LANE_W + GAUGE_W + 2, height };
 }
 
 /** 0 ~ 1,000,000 점수 (판정 점수 합 / 전체 판정 대상) */
@@ -174,7 +177,7 @@ export function drawFrame(
 ): void {
   const dpr = window.devicePixelRatio || 1;
   const { width, height } = canvasSize(engine.lanes);
-  if (canvas.width !== width * dpr) {
+  if (canvas.width !== width * dpr || canvas.height !== height * dpr) {
     canvas.width = width * dpr;
     canvas.height = height * dpr;
     canvas.style.width = `${width}px`;

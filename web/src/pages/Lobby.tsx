@@ -483,6 +483,9 @@ export default function Lobby() {
         <span>
           <kbd>Enter</kbd> 시작
         </span>
+        <span>
+          <kbd>Esc</kbd> 메뉴
+        </span>
       </footer>
     </div>
   );
