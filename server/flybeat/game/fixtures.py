@@ -1,8 +1,7 @@
-"""판정 골든 테스트 픽스처와 기본 채보를 만든다.
+"""판정 골든 테스트 픽스처를 만든다.
 
 사용법: python -m flybeat.game.fixtures
 - tests/fixtures/judge/*.json : Python·TS 엔진 공용 판정 테스트
-- charts/*.json : 기본 제공 채보
 """
 
 from __future__ import annotations
@@ -109,61 +108,12 @@ def build_fixtures() -> list[dict]:
     return cases
 
 
-SAMPLE_CHARTS = [
-    (
-        "tutorial-steps",
-        "Tutorial Steps",
-        11,
-        GeneratorConfig(
-            bpm_min=90, bpm_max=90, density=0.35, chord_prob=0, hold_prob=0, length_beats=48
-        ),
-    ),
-    (
-        "easy-groove",
-        "Easy Groove",
-        21,
-        GeneratorConfig(bpm_min=110, bpm_max=110, density=0.4, chord_prob=0.05, hold_prob=0.05),
-    ),
-    (
-        "normal-flight",
-        "Normal Flight",
-        31,
-        GeneratorConfig(
-            bpm_min=130, bpm_max=130, density=0.5, chord_prob=0.12, hold_prob=0.12, length_beats=96
-        ),
-    ),
-    (
-        "hard-swarm",
-        "Hard Swarm",
-        41,
-        GeneratorConfig(
-            bpm_min=160,
-            bpm_max=160,
-            subdivision=4,
-            density=0.35,
-            chord_prob=0.2,
-            hold_prob=0.1,
-            length_beats=96,
-        ),
-    ),
-]
-
-
 def main() -> None:
     FIXTURE_DIR.mkdir(parents=True, exist_ok=True)
     for case in build_fixtures():
         p = FIXTURE_DIR / f"{case['name']}.json"
         p.write_text(json.dumps(case, ensure_ascii=False, indent=1) + "\n", "utf-8")
         print("fixture", p.relative_to(paths.REPO_ROOT))
-    paths.CHARTS_DIR.mkdir(parents=True, exist_ok=True)
-    for cid, title, seed, cfg in SAMPLE_CHARTS:
-        c = generate_chart(seed, cfg, chart_id=cid)
-        d = c.to_dict()
-        d["title"] = title
-        d["artist"] = "fly-beat"
-        p = paths.CHARTS_DIR / f"{cid}.json"
-        p.write_text(json.dumps(d, ensure_ascii=False) + "\n", "utf-8")
-        print("chart", p.relative_to(paths.REPO_ROOT), len(c.notes), "notes")
 
 
 if __name__ == "__main__":
