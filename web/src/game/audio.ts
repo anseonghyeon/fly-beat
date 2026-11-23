@@ -1,6 +1,6 @@
 /**
- * 음원 파일 없이 WebAudio 로 박자(메트로놈)와 노트 소리를 합성한다.
- * 저작권 걱정 없는 기본 사운드.
+ * 채보에 음원(chart.audio)이 있으면 그 음원을 재생하고,
+ * 없으면 WebAudio 로 박자(메트로놈)와 노트 소리를 합성한다.
  */
 import type { Chart } from "./types";
 
@@ -47,6 +47,33 @@ export class SynthAudio {
     for (const n of chart.notes) {
       this.blip(zeroAt + n.t / 1000, laneFreq[n.lane] ?? 660, 0.09, 0.18, "triangle");
     }
+  }
+
+  /** 서버의 음원(/api/audio/<name>)을 받아 디코딩한다. */
+  async load(name: string): Promise<AudioBuffer> {
+    const ctx = await this.start();
+    const res = await fetch(`/api/audio/${encodeURIComponent(name)}`);
+    if (!res.ok) throw new Error(`음원을 불러오지 못했습니다 (${res.status})`);
+    return await ctx.decodeAudioData(await res.arrayBuffer());
+  }
+
+  /** 채보 시각 0 이 AudioContext 시각 zeroAt 이 되도록 음원을 재생한다 (이미 지났으면 그만큼 건너뜀). */
+  playBuffer(buffer: AudioBuffer, zeroAt: number): void {
+    if (!this.ctx || !this.master) return;
+    const src = this.ctx.createBufferSource();
+    src.buffer = buffer;
+    const gain = this.ctx.createGain();
+    gain.gain.value = 2.2; // master(0.35) 를 상쇄해 원음에 가깝게
+    src.connect(gain).connect(this.master);
+    const now = this.ctx.currentTime;
+    if (zeroAt >= now) src.start(zeroAt);
+    else src.start(now, now - zeroAt);
+  }
+
+  /** 음원이 있으면 음원을, 없으면 합성음을 예약한다. */
+  async playChart(chart: Chart, zeroAt: number, buffer?: AudioBuffer | null): Promise<void> {
+    if (buffer) this.playBuffer(buffer, zeroAt);
+    else this.schedule(chart, zeroAt);
   }
 
   hit(): void {

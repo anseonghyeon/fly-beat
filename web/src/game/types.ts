@@ -26,6 +26,7 @@ export interface ChartSummary {
   lanes: number;
   notes: number;
   durationMs: number;
+  audio: boolean;
 }
 
 export type Judgment = "PERFECT" | "GREAT" | "GOOD" | "MISS" | "EMPTY";

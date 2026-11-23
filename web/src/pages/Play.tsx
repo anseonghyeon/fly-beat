@@ -44,8 +44,16 @@ export default function Play() {
     const engine = new JudgeEngine(chart);
     const audio = new SynthAudio();
     const ctx = await audio.start();
+    let music: AudioBuffer | null = null;
+    if (chart.audio) {
+      try {
+        music = await audio.load(chart.audio);
+      } catch (e) {
+        setError(`${(e as Error).message} — 합성음으로 진행합니다`);
+      }
+    }
     const zeroAt = ctx.currentTime + LEAD_IN_S;
-    audio.schedule(chart, zeroAt);
+    await audio.playChart(chart, zeroAt, music);
     const songTime = () => (ctx.currentTime - zeroAt) * 1000;
     let last: { judgment: Judgment; at: number } | null = null;
     let raf = 0;
