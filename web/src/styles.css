@@ -1134,27 +1134,11 @@ tr.selected td {
   border-top: 1px solid #1c2036;
 }
 
-.ok-note {
-  font-size: 0.8rem;
-  color: #7bd88f;
-}
-
-.bad-note {
-  font-size: 0.8rem;
-  color: #ff6b6b;
-}
-
 .result-close {
   background: #2fd3ff;
   border-color: #2fd3ff;
   color: #021018;
   font-weight: 800;
-}
-
-.result-close kbd {
-  font-size: 0.7rem;
-  margin-left: 6px;
-  opacity: 0.7;
 }
 
 @media (max-width: 720px) {
@@ -1347,10 +1331,6 @@ kbd {
   background: #1c2036;
   border-color: #2a3156;
   color: #e8ecf7;
-}
-
-.result-foot > span {
-  margin-right: auto;
 }
 
 /* 로비 (곡 선택 화면) */
