@@ -1,0 +1,75 @@
+# 초파리 뇌 모델 설정. 근거는 docs/data-notes.md 참고.
+
+neurons:
+  status: [Traced]          # 이 status 의 뉴런만 쓴다
+
+# 신경전달물질(consensus_nt) → 시냅스 부호
+signs:
+  acetylcholine: 1
+  gaba: -1
+  glutamate: -1
+  histamine: -1
+  dopamine: 0               # 빠른 전달에서 제외 (모드 C 가소성 신호로만 사용)
+  octopamine: 0
+  serotonin: 0
+  unclear: 1
+  missing: 1
+
+lanes: 4
+
+# 시각 입력: 레인마다 해당 방향 L1/L2 컬럼. 세로(고도) 방향으로 다시 나눠 노트 위치를 표현한다.
+input:
+  types: [L1, L2]
+  # hex 좌표로 만든 방위각(azimuth) / 고도(elevation) 근사: a*hex1 + b*hex2 의 [a, b]
+  azimuth: [1, -1]
+  elevation: [1, 1]
+  vertical_bins: 4          # 레인 하나를 위→아래 몇 칸으로 나눌지
+  # 레인 → (눈, 방위 절반). half: outer = 방위각이 큰 쪽, inner = 작은 쪽 (근사)
+  lanes:
+    - {side: L, half: outer}
+    - {side: L, half: inner}
+    - {side: R, half: inner}
+    - {side: R, half: outer}
+
+# 출력: 레인 → 다리 운동 뉴런 집단
+output:
+  lanes:
+    - {exitNerve: ProLN, side: L}
+    - {exitNerve: MesoLN, side: L}
+    - {exitNerve: MesoLN, side: R}
+    - {exitNerve: ProLN, side: R}
+
+mushroom_body:
+  reward_dan_prefix: PAM
+  punish_dan_prefix: PPL1
+
+# 서브네트워크 프로필: 입력→출력 경로 길이 H 이내 뉴런 + 버섯체 회로
+profiles:
+  compact:
+    max_path: 4
+    min_weight: 5
+    max_inputs_per_neuron: 64   # 뉴런마다 가장 강한 입력 연결만 남김 (0 = 제한 없음)
+    include_mushroom_body: true
+    mb_path: 3                  # 입력→KC, MBON→출력 경로 길이
+  medium:
+    max_path: 5
+    min_weight: 5
+    max_inputs_per_neuron: 64
+    include_mushroom_body: true
+    mb_path: 4
+  full:
+    max_path: 0                 # 0 = 모든 Traced 뉴런
+    min_weight: 3
+    max_inputs_per_neuron: 0
+    include_mushroom_body: true
+    mb_path: 0
+
+simulation:
+  dt_ms: 2.0
+  tau_ms: 10.0
+  # 아래 값은 compact 프로필에서 탐색한 결과 (docs/brain-notes.md):
+  # 입력이 운동 뉴런까지 전달되면서, 입력이 사라지면 ~100ms 안에 활동이 가라앉는 영역
+  gain: 0.25                # 정규화된 가중치에 곱하는 이득
+  input_gain: 1.0
+  bias: -0.15               # 음수 = 발화 문턱
+  normalize_alpha: 0.5      # W / (입력 시냅스 합)^alpha
