@@ -9,7 +9,7 @@ W[post, pre] 는 부호 × 시냅스 수를 post 뉴런의 입력 합^alpha 로 
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from functools import cached_property
 from pathlib import Path
 
@@ -20,7 +20,7 @@ import scipy.sparse as sp
 from flybeat import paths
 from flybeat.brain.config import load_brain_config
 
-SUPPORTED_FORMAT = 2
+SUPPORTED_FORMAT = 3
 
 
 @dataclass
@@ -34,6 +34,8 @@ class Connectome:
     dan_post: np.ndarray
     dan_weight: np.ndarray
     meta: dict
+    plastic_pre: np.ndarray = field(default_factory=lambda: np.zeros(0, np.int64))
+    plastic_post: np.ndarray = field(default_factory=lambda: np.zeros(0, np.int64))
 
     @property
     def n(self) -> int:
@@ -64,6 +66,8 @@ class Connectome:
             W = sp.csr_matrix((z["data"], z["indices"], z["indptr"]), shape=shape)
         with np.load(d / "dan.npz", allow_pickle=False) as z:
             dan = (z["pre"], z["post"], z["weight"])
+        with np.load(d / "plastic.npz", allow_pickle=False) as z:
+            plastic = (z["pre"], z["post"])
         return cls(
             W=W,
             neurons=pd.read_feather(d / "neurons.feather"),
@@ -72,7 +76,27 @@ class Connectome:
             dan_post=dan[1],
             dan_weight=dan[2],
             meta=meta,
+            plastic_pre=plastic[0],
+            plastic_post=plastic[1],
         )
+
+    def save(self, profile: str, root: Path | None = None) -> Path:
+        """전처리 결과와 같은 형식으로 저장한다 (테스트·도구용)."""
+        d = (root or paths.PROCESSED_DIR) / profile
+        d.mkdir(parents=True, exist_ok=True)
+        W = self.W.tocsr()
+        np.savez_compressed(
+            d / "W.npz", indptr=W.indptr, indices=W.indices, data=W.data, shape=np.array(W.shape)
+        )
+        np.savez_compressed(
+            d / "dan.npz", pre=self.dan_pre, post=self.dan_post, weight=self.dan_weight
+        )
+        np.savez_compressed(d / "plastic.npz", pre=self.plastic_pre, post=self.plastic_post)
+        self.neurons.reset_index(drop=True).to_feather(d / "neurons.feather")
+        (d / "groups.json").write_text(json.dumps(self.groups), "utf-8")
+        meta = {**self.meta, "format": SUPPORTED_FORMAT, "profile": profile, "neurons": self.n}
+        (d / "meta.json").write_text(json.dumps(meta), "utf-8")
+        return d
 
     @cached_property
     def input_matrix(self) -> sp.csr_matrix:
@@ -93,6 +117,12 @@ class Connectome:
         return np.array([i for lane in self.groups["output"] for i in lane], dtype=np.int64)
 
     @cached_property
+    def readout_indices(self) -> np.ndarray:
+        """행동 리드아웃 대상: 다리 운동 뉴런 + 하행 뉴런(뇌 → 복부신경삭)."""
+        dn = np.flatnonzero(self.neurons["superclass"].to_numpy() == "descending_neuron")
+        return np.concatenate([self.output_indices, dn]).astype(np.int64)
+
+    @cached_property
     def output_lane_of(self) -> np.ndarray:
         return np.array(
             [lane for lane, idxs in enumerate(self.groups["output"]) for _ in idxs], dtype=np.int64
@@ -107,6 +137,9 @@ class SimConfig:
     input_gain: float = 1.0
     bias: float = 0.0
     normalize_alpha: float = 1.0  # W / (입력 시냅스 합)^alpha
+    kc_sparsity: float = 0.0  # >0 이면 매 순간 상위 이 비율의 KC 만 활성 (APL 억제 근사)
+    kc_gain: float = 1.0  # KC 입력 가중치 배율 (KC 는 약한 입력을 많이 받음)
+    kc_bias: float = 0.0  # KC 에만 더하는 전류 (전역 bias 를 상쇄)
 
     @classmethod
     def from_yaml(cls) -> SimConfig:
@@ -131,6 +164,15 @@ class BrainSim:
         self.P = conn.input_matrix
         self.out_idx = conn.output_indices
         self.out_lane = conn.output_lane_of
+        self.readout_idx = conn.readout_indices
+        self.kc_idx = np.asarray(conn.groups["kc"], dtype=np.int64)
+        self._kc_k = int(round(self.cfg.kc_sparsity * len(self.kc_idx)))
+        if self.cfg.kc_gain != 1.0 and len(self.kc_idx):
+            d = np.ones(self.n, np.float32)
+            d[self.kc_idx] = self.cfg.kc_gain
+            self.W = sp.csr_matrix(sp.diags(d) @ self.W, dtype=np.float32)
+        self._bias = np.full((self.n, 1), self.cfg.bias, np.float32)
+        self._bias[self.kc_idx] += self.cfg.kc_bias
         self.batch = batch
         self.reset()
 
@@ -162,18 +204,38 @@ class BrainSim:
         drive = self.drive_of(u)
         if extra is not None:
             drive = drive + extra
-        if c.bias:
-            drive = drive + np.float32(c.bias)
+        drive = drive + self._bias
         steps = max(1, round(ms / c.dt_ms))
         a = np.float32(c.dt_ms / c.tau_ms)
         g = np.float32(c.gain)
         r = self.r
         for _ in range(steps):
             x = g * (self.W @ r) + drive
+            if self._kc_k > 0:
+                self._kc_wta(x)
             np.maximum(x, 0.0, out=x)
             np.tanh(x, out=x)
             r += a * (x - r)
         return r
+
+    @property
+    def n_readout(self) -> int:
+        return len(self.readout_idx)
+
+    def readout(self) -> np.ndarray:
+        """리드아웃 뉴런(운동 + 하행) 활동 (B, n_readout)."""
+        return self.r[self.readout_idx].T
+
+    def _kc_wta(self, x: np.ndarray) -> None:
+        """KC 중 상위 k 개만 남기고 나머지를 억제 (열마다 k 번째 값을 문턱으로)."""
+        xk = x[self.kc_idx]
+        k = self._kc_k
+        if k >= len(xk):
+            return
+        # (k+1) 번째로 큰 값을 문턱으로 → 상위 k 개만 양수로 남는다
+        idx = len(xk) - k - 1
+        thr = np.partition(xk, idx, axis=0)[idx]
+        x[self.kc_idx] = xk - np.maximum(thr, 0.0)
 
     def motor(self) -> np.ndarray:
         """출력(운동) 뉴런 활동 (B, n_out)."""

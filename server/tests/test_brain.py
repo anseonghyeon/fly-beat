@@ -24,7 +24,8 @@ def tiny_connectome() -> Connectome:
         "mbon": [],
     }
     e = np.array([], dtype=np.int64)
-    return Connectome(W, pd.DataFrame({"bodyId": range(n)}), groups, e, e, e.astype(float), {})
+    neurons = pd.DataFrame({"bodyId": range(n), "superclass": ["x"] * n})
+    return Connectome(W, neurons, groups, e, e, e.astype(float), {})
 
 
 CFG = SimConfig(dt_ms=1.0, tau_ms=5.0, gain=1.0, bias=0.0, normalize_alpha=1.0)
@@ -73,3 +74,14 @@ def test_hop_distance_and_top_k():
     w = np.array([1, 5, 3, 2, 1], np.float32)
     np.testing.assert_array_equal(top_k_inputs(qi, w, 2), [False, True, True, True, True])
     assert top_k_inputs(qi, w, 0).all()
+
+
+def test_kc_winner_take_all_limits_active_kcs():
+    from conftest import synthetic_connectome
+
+    conn = synthetic_connectome()
+    cfg = SimConfig(gain=1.0, bias=0.0, normalize_alpha=1.0, kc_sparsity=0.25)
+    sim = BrainSim(conn, batch=1, cfg=cfg)
+    sim.step(np.ones((1, 16), np.float32), 100)
+    active = (sim.r[conn.groups["kc"], 0] > 1e-3).sum()
+    assert 1 <= active <= 4  # 16 개 중 상위 25%
