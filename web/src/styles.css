@@ -1666,10 +1666,6 @@ kbd {
   color: #ff5fa2;
 }
 
-.tile kbd {
-  font-size: 0.6rem;
-}
-
 .opp-desc {
   margin: -4px 0 0;
 }
