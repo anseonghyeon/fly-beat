@@ -282,5 +282,5 @@ Phase 0~6을 마쳤다. 결과는 `docs/results.md`, 설계에서 바뀐 부분�
 | Phase 3 | 완료 | 관측에 "레인별 다음 노트까지 남은 시간" 채널을 추가했다 |
 | Phase 4 | 완료 | 리드아웃 대상을 다리 운동 뉴런에서 운동 + 하행 뉴런으로 넓혔다. 감각 매핑 ES 탐색은 옵션(`es_iters`, 기본 0) |
 | Phase 5 | 완료 | KC→KC 제거, KC k-WTA 추가. 도파민 신호는 DAN 자극량(보상 예측 오차)을 DAN→MBON 구획 연결로 전달한다. 리드아웃은 가소성 시냅스의 MBON 입력 전류 |
-| Phase 6 | 완료 | Host·Origin 검사를 추가했다 |
+| Phase 6 | 완료 | Host·Origin 검사를 추가했다. 이후 Play와 Watch를 하나의 대결 화면(Play)으로 합쳤다 |
 | Phase 7 | 남음 | 코드 라이선스 결정, CI, 데모 GIF |
