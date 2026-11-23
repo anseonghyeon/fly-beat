@@ -44,6 +44,8 @@ export interface Activity {
   danPunish: number;
   activeFraction: number;
   pressProb?: number[];
+  /** 활발한 뉴런: [인덱스 목록, 세기 0~255 목록] */
+  active?: [number[], number[]];
 }
 
 export interface Frame {
@@ -53,7 +55,7 @@ export interface Frame {
 }
 
 export type PlayMessage =
-  | { type: "ready"; mode: Mode; chart: Chart; leadMs: number }
+  | { type: "ready"; mode: Mode; profile: string | null; chart: Chart; leadMs: number }
   | { type: "frames"; frames: Frame[] }
   | { type: "end"; stats: Stats }
   | { type: "error"; message: string };
