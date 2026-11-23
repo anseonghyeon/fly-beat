@@ -15,8 +15,9 @@ import { SynthAudio } from "../game/audio";
 import { JudgeEngine } from "../game/engine";
 import { LANE_KEY_CODES, LANE_KEY_LABELS, LANE_KEYS_TEXT } from "../game/keys";
 import { FlyRenderer, REGION_COLORS, type Layout, type ViewName } from "../game/flyRenderer";
-import { canvasSize, drawFrame } from "../game/renderer";
-import type { Chart, ChartSummary, JudgeEvent, Judgment, Stats } from "../game/types";
+import { canvasSize, drawFrame, HitEffects, scoreOf, type LastJudgment } from "../game/renderer";
+import type { Chart, ChartSummary, JudgeEvent, Stats } from "../game/types";
+import { VersusHud, type HudState } from "../components/VersusHud";
 
 const KEYS: readonly string[] = LANE_KEY_CODES;
 const KEY_LABELS = [...LANE_KEY_LABELS];
@@ -77,6 +78,7 @@ export default function Play() {
   const [flyMode, setFlyMode] = useState<Mode | null>(null);
   const [activity, setActivity] = useState<Activity | null>(null);
   const [result, setResult] = useState<MatchResult | null>(null);
+  const [hud, setHud] = useState<HudState | null>(null);
   const [layout, setLayout] = useState<Layout | null>(null);
   const [view, setView] = useState<ViewName>("top");
 
@@ -181,21 +183,33 @@ export default function Play() {
     if (sound) await audio.playChart(chart, zeroAt, music);
     const songTime = () => (ctx.currentTime - zeroAt) * 1000;
 
-    let lastHuman: { judgment: Judgment; at: number } | null = null;
-    let lastFly: { judgment: Judgment; at: number } | null = null;
+    let lastHuman: LastJudgment | null = null;
+    let lastFly: LastJudgment | null = null;
+    const humanFx = new HitEffects();
+    const flyFx = new HitEffects();
     let latest: Activity | null = null;
     let raf = 0;
     let closed = false;
     let lastPerf = performance.now();
-    const latestOf = (evs: JudgeEvent[]) => evs.filter((e) => e.judgment !== "EMPTY").pop();
+    let lastHud = 0;
+    const duration = human.endTime;
+    /** 판정 이벤트 → 타격 효과 + 마지막 판정 표시 */
+    const show = (evs: JudgeEvent[], fx: HitEffects): LastJudgment | null => {
+      let last: LastJudgment | null = null;
+      for (const e of evs) {
+        if (e.judgment === "EMPTY") continue;
+        fx.add(e);
+        last = { judgment: e.judgment, shownAt: performance.now(), offset: e.offset };
+      }
+      return last;
+    };
 
     const onKey = (down: boolean) => (e: KeyboardEvent) => {
       const lane = KEYS.indexOf(e.code);
       if (lane < 0 || e.repeat) return;
       e.preventDefault();
       const t = Math.max(Math.round(songTime()), human.now);
-      const ev = latestOf(down ? human.press(lane, t) : human.release(lane, t));
-      if (ev) lastHuman = { judgment: ev.judgment, at: t };
+      lastHuman = show(down ? human.press(lane, t) : human.release(lane, t), humanFx) ?? lastHuman;
       if (down && sound) audio.hit();
     };
     const kd = onKey(true);
@@ -213,6 +227,7 @@ export default function Play() {
       void audio.stop();
       stopRef.current = null;
       setStatus("idle");
+      setHud(null);
     };
     stopRef.current = cleanup;
 
@@ -233,22 +248,24 @@ export default function Play() {
     const frame = () => {
       const now = songTime();
       // 나
-      if (now > human.now) {
-        const ev = latestOf(human.advance(now));
-        if (ev) lastHuman = { judgment: ev.judgment, at: now };
-      }
-      drawFrame(hCanvas, human, now, { speed, keyLabels: KEY_LABELS, lastJudgment: lastHuman });
+      const progress = Math.max(0, now) / duration;
+      if (now > human.now) lastHuman = show(human.advance(now), humanFx) ?? lastHuman;
+      drawFrame(hCanvas, human, now, {
+        speed,
+        keyLabels: KEY_LABELS,
+        lastJudgment: lastHuman,
+        effects: humanFx,
+        progress,
+      });
 
       // 초파리: 도착한 프레임 중 지금 시각까지 재생
       if (fly) {
         while (queue.length && queue[0]!.t <= now) {
           const f = queue.shift()!;
           for (const [lane, down] of f.inputs) {
-            const ev = latestOf(down ? fly.press(lane, f.t) : fly.release(lane, f.t));
-            if (ev) lastFly = { judgment: ev.judgment, at: f.t };
+            lastFly = show(down ? fly.press(lane, f.t) : fly.release(lane, f.t), flyFx) ?? lastFly;
           }
-          const ev = latestOf(fly.advance(f.t));
-          if (ev) lastFly = { judgment: ev.judgment, at: f.t };
+          lastFly = show(fly.advance(f.t), flyFx) ?? lastFly;
           if (f.activity) {
             latest = f.activity;
             setActivity(f.activity);
@@ -258,6 +275,8 @@ export default function Play() {
           speed,
           keyLabels: KEY_LABELS,
           lastJudgment: lastFly,
+          effects: flyFx,
+          progress,
         });
       }
       const perf = performance.now();
@@ -270,6 +289,31 @@ export default function Play() {
           perf - lastPerf,
         );
       lastPerf = perf;
+
+      // 대결 상황판은 초당 10번만 갱신
+      if (perf - lastHud > 100) {
+        lastHud = perf;
+        setHud({
+          title: chart.title,
+          artist: chart.artist ?? "",
+          bpm: chart.bpm,
+          progress: Math.min(1, progress),
+          human: {
+            score: scoreOf(human),
+            rate: human.stats.accuracy,
+            combo: human.stats.combo,
+          },
+          fly:
+            fly && mode
+              ? {
+                  name: MODE_NAME[mode],
+                  score: scoreOf(fly),
+                  rate: fly.stats.accuracy,
+                  combo: fly.stats.combo,
+                }
+              : null,
+        });
+      }
 
       const humanDone = now >= human.endTime;
       const flyDone = !fly || (flyServerStats !== null && queue.length === 0);
@@ -301,7 +345,12 @@ export default function Play() {
       </section>
 
       <section className="center">
-        <div className="panel">
+        {status === "playing" && hud && (
+          <div className="panel hud-panel">
+            <VersusHud hud={hud} onStop={stop} />
+          </div>
+        )}
+        <div className="panel" hidden={status === "playing" && hud !== null}>
           <h2>대결 설정</h2>
           <div className="controls">
             <ChartPicker charts={charts} value={chartId} onChange={setChartId} disabled={busy} />
