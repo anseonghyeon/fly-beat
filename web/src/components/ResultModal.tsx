@@ -135,7 +135,17 @@ function PlayerCard({
   );
 }
 
-export function ResultModal({ result, onClose }: { result: MatchResult; onClose: () => void }) {
+export function ResultModal({
+  result,
+  onClose,
+  onRetry,
+  onLobby,
+}: {
+  result: MatchResult;
+  onClose: () => void;
+  onRetry?: () => void;
+  onLobby?: () => void;
+}) {
   const closeRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
@@ -201,6 +211,16 @@ export function ResultModal({ result, onClose }: { result: MatchResult; onClose:
                 ? "✓ 브라우저(TS)와 서버(Python) 판정 일치"
                 : `판정 불일치: 브라우저 ${fly?.client.accuracy}% / 서버 ${fly?.server?.accuracy}%`}
             </span>
+          )}
+          {onLobby && (
+            <button className="result-secondary" onClick={onLobby}>
+              로비로
+            </button>
+          )}
+          {onRetry && (
+            <button className="result-secondary" onClick={onRetry}>
+              다시 하기
+            </button>
           )}
           <button ref={closeRef} className="result-close" onClick={onClose}>
             닫기 <kbd>Esc</kbd>
