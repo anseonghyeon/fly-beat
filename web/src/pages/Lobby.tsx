@@ -10,7 +10,7 @@ import type { CheckpointSummary, Mode } from "../api/types";
 import { OpponentIcon } from "../components/OpponentIcon";
 import { Cover } from "../components/Cover";
 import { Logo } from "../components/Logo";
-import { gradeOf } from "../components/ResultModal";
+import { gradeOf } from "../components/ResultView";
 import { unlockAudio } from "../game/audio";
 import { LANE_KEYS_TEXT } from "../game/keys";
 import { OPPONENTS, SOLO, strengthOf } from "../game/opponents";

@@ -4,6 +4,7 @@ import { Splash } from "./components/Splash";
 import Brain from "./pages/Brain";
 import Lobby from "./pages/Lobby";
 import Play from "./pages/Play";
+import Result from "./pages/Result";
 import Train from "./pages/Train";
 
 const NAV = [
@@ -32,6 +33,7 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Lobby />} />
           <Route path="/play" element={<Play />} />
+          <Route path="/result" element={<Result />} />
           <Route path="/watch" element={<Navigate to="/" replace />} />
           <Route path="/train" element={<Train />} />
           <Route path="/brain" element={<Brain />} />

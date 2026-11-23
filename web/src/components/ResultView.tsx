@@ -135,25 +135,26 @@ function PlayerCard({
   );
 }
 
-export function ResultModal({
+/** 결과 화면 본문 (결과 페이지에서 사용). Enter = 다시 하기, Esc = 로비로 */
+export function ResultView({
   result,
-  onClose,
   onRetry,
   onLobby,
 }: {
   result: MatchResult;
-  onClose: () => void;
-  onRetry?: () => void;
-  onLobby?: () => void;
+  onRetry: () => void;
+  onLobby: () => void;
 }) {
-  const closeRef = useRef<HTMLButtonElement>(null);
+  const retryRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
-    closeRef.current?.focus();
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    retryRef.current?.focus();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onLobby();
+    };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
+  }, [onLobby]);
 
   const { human, fly } = result;
   const diff = result.chartTitle.match(DIFF_RE)?.[1] ?? null;
@@ -164,58 +165,40 @@ export function ResultModal({
   const theirs: Outcome = !fly ? null : mine === "WIN" ? "LOSE" : mine === "LOSE" ? "WIN" : "DRAW";
 
   return (
-    <div className="modal-backdrop" onClick={onClose}>
-      <div
-        className="modal result"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="result-title"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <header className="result-head">
-          <span className="result-tag">RESULT</span>
-          <h2 id="result-title">{title}</h2>
-          {diff && <span className={`diff ${diff.toLowerCase()}`}>{diff}</span>}
-          {(result.artist || result.bpm) && (
-            <span className="result-meta">
-              {result.artist}
-              {result.bpm ? ` · ${Math.round(result.bpm)} BPM` : ""}
-            </span>
-          )}
-        </header>
+    <div className="result-card" aria-labelledby="result-title">
+      <header className="result-head">
+        <span className="result-tag">RESULT</span>
+        <h2 id="result-title">{title}</h2>
+        {diff && <span className={`diff ${diff.toLowerCase()}`}>{diff}</span>}
+        {(result.artist || result.bpm) && (
+          <span className="result-meta">
+            {result.artist}
+            {result.bpm ? ` · ${Math.round(result.bpm)} BPM` : ""}
+          </span>
+        )}
+      </header>
 
-        <div className={`result-cols ${fly ? "" : "solo"}`}>
-          <PlayerCard
-            who="나"
-            sub={`키 ${LANE_KEYS_TEXT}`}
-            stats={human}
-            outcome={mine}
-            accent="me"
-          />
-          {fly && (
-            <PlayerCard
-              who="초파리"
-              sub={fly.name}
-              stats={fly.client}
-              outcome={theirs}
-              accent="fly"
-            />
-          )}
-        </div>
-
-        <footer className="result-foot">
-          {onLobby && (
-            <button className="result-secondary" onClick={onLobby}>
-              로비로
-            </button>
-          )}
-          {onRetry && (
-            <button ref={closeRef} className="result-close" onClick={onRetry}>
-              다시 하기
-            </button>
-          )}
-        </footer>
+      <div className={`result-cols ${fly ? "" : "solo"}`}>
+        <PlayerCard
+          who="나"
+          sub={`키 ${LANE_KEYS_TEXT}`}
+          stats={human}
+          outcome={mine}
+          accent="me"
+        />
+        {fly && (
+          <PlayerCard who="상대" sub={fly.name} stats={fly.client} outcome={theirs} accent="fly" />
+        )}
       </div>
+
+      <footer className="result-foot">
+        <button className="result-secondary" onClick={onLobby}>
+          로비로
+        </button>
+        <button ref={retryRef} className="result-close" onClick={onRetry}>
+          다시 하기
+        </button>
+      </footer>
     </div>
   );
 }

@@ -559,42 +559,6 @@ tr.selected td {
 }
 
 /* 결과 모달 */
-.modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgb(0 0 0 / 0.55);
-  display: grid;
-  place-items: center;
-  padding: 16px;
-  z-index: 50;
-}
-
-.modal {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 20px 22px;
-  width: min(760px, 100%);
-  max-height: calc(100vh - 32px);
-  overflow: auto;
-  box-shadow: 0 20px 60px rgb(0 0 0 / 0.3);
-}
-
-.modal h2 {
-  margin: 0 0 4px;
-}
-
-.modal h3 {
-  margin: 0 0 8px;
-  font-size: 0.95rem;
-}
-
-.modal-actions {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 16px;
-}
-
 /* Play 가운데 열을 한 화면에 (설정 + 몸과 뇌 + 수치) */
 .versus .center {
   gap: 12px;
@@ -834,7 +798,7 @@ tr.selected td {
 }
 
 /* 결과 화면 (아케이드) */
-.modal.result {
+.result-card {
   width: min(900px, 100%);
   padding: 0;
   background:
@@ -884,14 +848,14 @@ tr.selected td {
   color: #8b93ad;
 }
 
-.modal.result .result-cols {
+.result-card .result-cols {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 16px;
   padding: 18px 22px;
 }
 
-.modal.result .result-cols.solo {
+.result-card .result-cols.solo {
   grid-template-columns: minmax(0, 440px);
   justify-content: center;
 }
@@ -1142,13 +1106,13 @@ tr.selected td {
 }
 
 @media (max-width: 720px) {
-  .modal.result .result-cols {
+  .result-card .result-cols {
     grid-template-columns: 1fr;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .modal.result,
+  .result-card,
   .grade,
   .jbar i {
     animation: none;
@@ -1980,5 +1944,56 @@ kbd {
 
   .versus .center p.muted.small {
     display: none;
+  }
+}
+
+/* 결과 페이지 */
+.result-page {
+  min-height: calc(100vh - 62px - 40px);
+  display: grid;
+  place-items: center;
+}
+
+.result-card {
+  margin: 0 auto;
+  border-radius: 14px;
+  box-shadow: 0 20px 60px rgb(0 0 0 / 0.45);
+}
+
+/* 곡 종료 표시 (결과 페이지로 넘어가기 전) */
+.finish-banner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.finish-banner b {
+  font-size: 2.4rem;
+  font-weight: 900;
+  font-style: italic;
+  letter-spacing: 0.12em;
+  background: linear-gradient(90deg, #2fd3ff, #ff3d8b);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: finish-in 0.5s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+}
+
+.finish-banner span {
+  font-size: 0.8rem;
+  color: var(--fg-muted);
+}
+
+@keyframes finish-in {
+  from {
+    transform: scale(1.6);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .finish-banner b {
+    animation: none;
   }
 }
