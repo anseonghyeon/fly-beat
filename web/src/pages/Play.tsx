@@ -236,6 +236,8 @@ export default function Play() {
       fly?.finish();
       setResult({
         chartTitle: chart.title,
+        artist: chart.artist,
+        bpm: chart.bpm,
         human: { ...human.stats },
         fly:
           fly && mode
