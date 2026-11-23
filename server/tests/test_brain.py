@@ -82,6 +82,7 @@ def test_kc_winner_take_all_limits_active_kcs():
     conn = synthetic_connectome()
     cfg = SimConfig(gain=1.0, bias=0.0, normalize_alpha=1.0, kc_sparsity=0.25)
     sim = BrainSim(conn, batch=1, cfg=cfg)
-    sim.step(np.ones((1, 16), np.float32), 100)
+    u = np.random.default_rng(0).random((1, 16), dtype=np.float32)  # 동점이 없도록
+    sim.step(u, 100)
     active = (sim.r[conn.groups["kc"], 0] > 1e-3).sum()
     assert 1 <= active <= 4  # 16 개 중 상위 25%
