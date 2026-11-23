@@ -53,7 +53,7 @@ export function Splash() {
     <div className={`splash ${phase === "fade" ? "out" : ""}`} aria-hidden>
       <div className="splash-inner">
         <Logo big />
-        <div className="splash-sub">초파리 커넥톰 리듬게임</div>
+        <div className="splash-sub">HUMAN VS FLY</div>
       </div>
     </div>
   );
