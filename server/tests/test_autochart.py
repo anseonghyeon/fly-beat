@@ -2,8 +2,9 @@ import numpy as np
 import pytest
 import soundfile as sf
 
-from flybeat.game.autochart import DIFFICULTIES, analyze, encode_ogg, load_mono, make_chart
+from flybeat.game.autochart import analyze, encode_ogg, load_mono
 from flybeat.game.chart import ChartError, audio_path
+from flybeat.game.charter import DIFFICULTIES, chart_quality, make_chart
 
 
 def click_track(path, bpm=128.0, seconds=30.0, sr=22050, offset=0.35):
@@ -60,3 +61,14 @@ def test_encode_ogg(tmp_path):
 def test_audio_path_rejects(bad, tmp_path):
     with pytest.raises((ChartError, FileNotFoundError)):
         audio_path(bad, tmp_path)
+
+
+def test_chart_quality_flow_and_no_jacks(tmp_path):
+    p = tmp_path / "click.wav"
+    click_track(p, bpm=120.0, seconds=40)
+    a = analyze(*load_mono(p))
+    for name, d in DIFFICULTIES.items():
+        c = make_chart(a, d, f"q-{name}", "Q", "", None)
+        q = chart_quality(c, a)
+        assert q["on_strong_onset"] >= 0.9, (name, q)  # 소리가 있는 곳에 노트
+        assert q["jack_ratio"] <= 0.05, (name, q)  # 같은 레인 연타 거의 없음

@@ -1,10 +1,9 @@
-"""음원 → 4레인 채보 자동 생성.
+"""음원 분석 + 채보 생성 CLI.
 
-1. 음원을 모노로 읽고 스펙트럼 변화량(spectral flux)으로 강세(onset) 곡선을 만든다.
-2. 강세 곡선으로 BPM 과 첫 박 위치(위상)를 찾는다 (일정한 템포 가정).
-3. 난이도별 격자(쉬움 4분, 보통 8분, 어려움 16분 음표) 위에서 강세가 큰 칸에 노트를 놓는다.
-4. 레인은 그 순간 소리의 높낮이(스펙트럼 무게중심)로 정한다: 낮은 소리 → 왼쪽, 높은 소리 → 오른쪽.
-5. 보통·어려움은 강한 박에 동시치기, 뒤가 비는 강한 노트에 롱노트를 넣는다.
+분석(이 파일): 음원을 모노로 읽고 스펙트럼 변화량으로 강세 곡선과
+대역별(킥·스네어·멜로디·하이햇) 강세, 멜로디 대역 밝기를 구한 뒤
+BPM 과 첫 박 위치(위상)를 찾는다 (일정한 템포 가정).
+채보 생성: flybeat.game.charter (음악적인 레인 배정·반복·롱노트).
 
 사용법:
   python -m flybeat.game.autochart song.wav --id my-song --title "My Song" --artist "Someone" \\
@@ -21,27 +20,10 @@ from pathlib import Path
 import numpy as np
 
 from flybeat import paths
-from flybeat.game.chart import CHART_ID_RE, Chart, Note, chart_from_dict
+from flybeat.game.chart import AUDIO_NAME_RE, CHART_ID_RE
 
 N_FFT = 2048
 HOP = 256
-
-
-@dataclass(frozen=True)
-class Difficulty:
-    name: str
-    subdivision: int  # 박자당 칸 수
-    keep: float  # 강세 상위 몇 % 칸에 노트를 놓을지
-    chord_top: float  # 강세 상위 몇 % 에 동시치기 (0 = 없음)
-    hold_prob: float  # 조건을 만족하는 노트 중 롱노트 비율
-    min_gap_ms: int  # 같은 레인 최소 간격
-
-
-DIFFICULTIES = {
-    "easy": Difficulty("easy", 1, 0.55, 0.0, 0.0, 300),
-    "normal": Difficulty("normal", 2, 0.45, 0.06, 0.15, 200),
-    "hard": Difficulty("hard", 4, 0.40, 0.12, 0.12, 120),
-}
 
 
 @dataclass
@@ -55,6 +37,12 @@ class Analysis:
     bpm: float
     first_beat_s: float
     t0: float = 0.0  # 프레임 i 의 시각 = t0 + i * frame_s
+    # 대역별 강세 (0~1): low=킥·베이스, mid=스네어, mel=멜로디 대역, high=하이햇
+    bands: dict[str, np.ndarray] | None = None
+    mel_centroid: np.ndarray | None = (
+        None  # 멜로디 대역(250~4000Hz) 무게중심 (Hz, 로그 스케일 비교용)
+    )
+    mel_energy: np.ndarray | None = None  # 멜로디 대역 로그 에너지
 
     def frame_of(self, ts: float) -> float:
         return (ts - self.t0) / self.frame_s
@@ -83,11 +71,42 @@ def analyze(y: np.ndarray, sr: int, bpm_range: tuple[float, float] = (80, 190)) 
     rms = np.sqrt((frames**2).mean(axis=1))
     frame_s = HOP / sr
 
+    def band_onset(lo: float, hi: float) -> np.ndarray:
+        m = (freqs >= lo) & (freqs < hi)
+        fl = np.maximum(0, np.diff(logmag[:, m], axis=0, prepend=logmag[:1, m])).sum(axis=1)
+        fl -= np.convolve(fl, np.ones(16) / 16, mode="same")
+        fl = np.maximum(fl, 0)
+        return np.clip(fl / max(np.percentile(fl, 99.5), 1e-9), 0, 1)
+
+    bands = {
+        "low": band_onset(20, 160),
+        "mid": band_onset(160, 2500),
+        "mel": band_onset(250, 4000),
+        "high": band_onset(5000, min(16000, sr / 2)),
+    }
+    mm = (freqs >= 250) & (freqs < 4000)
+    mel_mag = mag[:, mm]
+    mel_centroid = (mel_mag * freqs[mm]).sum(axis=1) / np.maximum(mel_mag.sum(axis=1), 1e-9)
+    mel_energy = np.log1p(100 * mel_mag.sum(axis=1))
+
     bpm, first = estimate_tempo(onset, frame_s, bpm_range)
     # 해닝 창에서 강세(에너지 증가)가 가장 크게 잡히는 곳은 창 시작에서 3/4 지점이다.
     # 프레임 시각을 창 시작으로 두면 노트가 실제 소리보다 앞서므로 그만큼 보정한다.
     t0 = 0.75 * N_FFT / sr
-    return Analysis(sr, len(y) / sr, frame_s, onset, centroid, rms, bpm, first + t0, t0)
+    return Analysis(
+        sr,
+        len(y) / sr,
+        frame_s,
+        onset,
+        centroid,
+        rms,
+        bpm,
+        first + t0,
+        t0,
+        bands,
+        mel_centroid,
+        mel_energy,
+    )
 
 
 def _comb(onset: np.ndarray, period: float, n_phase: int = 48) -> tuple[float, float]:
@@ -133,93 +152,6 @@ def estimate_tempo(
     return round(bpm, 2), ph * frame_s
 
 
-def make_chart(
-    a: Analysis,
-    diff: Difficulty,
-    chart_id: str,
-    title: str,
-    artist: str,
-    audio: str | None,
-    lanes: int = 4,
-    seed: int = 0,
-) -> Chart:
-    rng = np.random.default_rng(seed)
-    beat_s = 60.0 / a.bpm
-    slot_s = beat_s / diff.subdivision
-    t_frames = np.arange(len(a.onset))
-    slots = np.arange(a.first_beat_s, a.duration_s - 0.5, slot_s)
-    slots = slots[slots >= 1.0]  # 시작 1초는 비워 둔다
-
-    def strength(ts: float) -> float:
-        f = a.frame_of(ts)
-        lo, hi = int(max(0, f - 2)), int(min(len(a.onset), f + 3))
-        return float(a.onset[lo:hi].max()) if hi > lo else 0.0
-
-    s = np.array([strength(ts) for ts in slots])
-    if len(s) == 0:
-        raise ValueError("곡이 너무 짧습니다")
-    thr = np.quantile(s, 1 - diff.keep)
-    chosen = np.flatnonzero((s >= thr) & (s > 0.05))
-    chord_thr = np.quantile(s, 1 - diff.chord_top) if diff.chord_top > 0 else np.inf
-
-    # 레인: 스펙트럼 무게중심 분위수로 낮은 소리 → 왼쪽
-    cents = np.interp(a.frame_of(slots[chosen]), t_frames, a.centroid)
-    edges = np.quantile(cents, np.linspace(0, 1, lanes + 1)[1:-1]) if len(cents) else []
-    lane_free = [-1e9] * lanes  # 레인이 다시 비는 시각 (ms)
-    notes: list[Note] = []
-    gap = diff.min_gap_ms
-
-    def place(t_ms: int, want: int) -> int | None:
-        for d in (0, 1, -1, 2, -2, 3, -3):
-            ln = want + d
-            if 0 <= ln < lanes and t_ms - lane_free[ln] >= gap:
-                return ln
-        return None
-
-    for k, ci in enumerate(chosen):
-        t_ms = int(round(slots[ci] * 1000))
-        want = int(np.searchsorted(edges, cents[k]))
-        lane = place(t_ms, want)
-        if lane is None:
-            continue
-        # 롱노트: 다음 선택 칸까지 1박 이상 비고, 소리가 이어질 때
-        nxt = slots[chosen[k + 1]] if k + 1 < len(chosen) else a.duration_s
-        f0 = max(0, int(a.frame_of(slots[ci])))
-        f1 = int(a.frame_of(min(nxt, a.duration_s - 0.2)))
-        sustained = f1 > f0 and a.rms[f0:f1].min() > 0.5 * a.rms[f0]
-        if (
-            diff.hold_prob > 0
-            and nxt - slots[ci] >= beat_s * 1.0
-            and sustained
-            and rng.random() < diff.hold_prob * 3
-        ):
-            dur = int(round((nxt - slots[ci] - slot_s) * 1000))
-            notes.append(Note(t_ms, lane, "hold", max(dur, 100)))
-            lane_free[lane] = t_ms + max(dur, 100)
-        else:
-            notes.append(Note(t_ms, lane, "tap", 0))
-            lane_free[lane] = t_ms
-        if s[ci] >= chord_thr:
-            other = place(t_ms, lanes - 1 - lane)
-            if other is not None and other != lane:
-                notes.append(Note(t_ms, other, "tap", 0))
-                lane_free[other] = t_ms
-
-    notes.sort(key=lambda n: (n.t, n.lane))
-    chart = Chart(
-        id=chart_id,
-        title=title,
-        bpm=round(a.bpm, 2),
-        offset_ms=int(round(a.first_beat_s * 1000)),
-        lanes=lanes,
-        notes=tuple(notes),
-        artist=artist,
-        audio=audio,
-    )
-    chart_from_dict(chart.to_dict())  # 스키마·겹침 검증
-    return chart
-
-
 def encode_ogg(y_path: Path, out: Path, quality: float = 0.4) -> None:
     """WAV 등 → OGG Vorbis (저장소 용량 절약)."""
     import soundfile as sf
@@ -239,12 +171,17 @@ def encode_ogg(y_path: Path, out: Path, quality: float = 0.4) -> None:
 
 
 def main() -> None:
+    from flybeat.game.charter import DIFFICULTIES, chart_quality, make_chart
+
     p = argparse.ArgumentParser(prog="python -m flybeat.game.autochart")
     p.add_argument("audio", type=Path)
     p.add_argument("--id", required=True, help="채보 ID 접두사 (예: my-song → my-song-easy)")
     p.add_argument("--title", required=True)
     p.add_argument("--artist", default="")
     p.add_argument("--audio-out", type=Path, help="OGG 로 변환해 저장할 경로 (charts/audio/*.ogg)")
+    p.add_argument(
+        "--audio-name", help="이미 charts/audio 에 있는 음원 파일 이름 (변환 없이 채보에만 연결)"
+    )
     p.add_argument(
         "--difficulty", nargs="+", default=list(DIFFICULTIES), choices=list(DIFFICULTIES)
     )
@@ -253,7 +190,9 @@ def main() -> None:
 
     if not CHART_ID_RE.fullmatch(args.id) or len(args.id) > 56:
         raise SystemExit("ID 는 소문자·숫자·하이픈만, 56자 이하")
-    audio_name = None
+    audio_name = args.audio_name
+    if audio_name and not AUDIO_NAME_RE.fullmatch(audio_name):
+        raise SystemExit("음원 이름 형식이 올바르지 않습니다 (예: my-song.ogg)")
     if args.audio_out:
         encode_ogg(args.audio, args.audio_out)
         audio_name = args.audio_out.name
@@ -271,7 +210,12 @@ def main() -> None:
         out = args.out_dir / f"{cid}.json"
         out.write_text(json.dumps(chart.to_dict(), ensure_ascii=False) + "\n", "utf-8")
         nps = len(chart.notes) / max(chart.duration_ms / 1000, 1)
-        print(f"[chart] {out.name}: {len(chart.notes)} notes ({nps:.1f}/s)")
+        q = chart_quality(chart, a)
+        print(
+            f"[chart] {out.name}: {len(chart.notes)} notes ({nps:.1f}/s) "
+            f"강세일치 {q['on_strong_onset']:.0%} 흐름 {q['step_moves']:.0%} "
+            f"연타 {q['jack_ratio']:.1%} 롱노트 {q['holds']} 동시치기 {q['chords']}"
+        )
 
 
 if __name__ == "__main__":
