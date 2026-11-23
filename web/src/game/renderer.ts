@@ -32,18 +32,26 @@ const MAX_SCORE = 1_000_000;
 
 /** 레일 색 (어두운 무대 전용, 화면 테마와 무관하게 고정) */
 const C = {
-  bg: "#0b0a08",
-  laneA: "#14120e",
-  laneB: "#100f0c",
-  laneLine: "#2a261d",
-  judge: "#f2a93b",
-  tapTop: "#fff6dc",
-  tapBottom: "#f2c14e",
-  holdA: "rgba(242, 193, 78, 0.55)",
-  holdB: "rgba(242, 169, 59, 0.15)",
-  beam: "242, 169, 59",
-  text: "#ece6d8",
-  muted: "#8a8272",
+  bg: "#04050a",
+  laneA: "#0a0c18",
+  laneB: "#070913",
+  laneLine: "#1c2036",
+  judge: "#2fd3ff",
+  judge2: "#ff3d8b",
+  /** 바깥 레인(0·3) 은백색, 안쪽 레인(1·2) 시안 */
+  tap: [
+    ["#ffffff", "#b9c3dc"],
+    ["#c9f4ff", "#2fb8f0"],
+    ["#c9f4ff", "#2fb8f0"],
+    ["#ffffff", "#b9c3dc"],
+  ] as [string, string][],
+  tapGlow: ["rgba(220, 230, 255, 0.6)", "rgba(47, 211, 255, 0.7)"],
+  holdA: "rgba(47, 211, 255, 0.5)",
+  holdB: "rgba(47, 211, 255, 0.1)",
+  holdActive: "rgba(150, 235, 255, 0.9)",
+  beam: "47, 211, 255",
+  text: "#e8ecf7",
+  muted: "#79809a",
   perfect: "#ffd54a",
   great: "#7bd88f",
   good: "#6ab0ff",
@@ -105,7 +113,7 @@ export class HitEffects {
       // 위로 솟는 빛기둥
       const col = ctx.createLinearGradient(0, judgeY - 260, 0, judgeY);
       col.addColorStop(0, "rgba(255,255,255,0)");
-      col.addColorStop(1, `rgba(255,236,190,${0.45 * (1 - age) ** 2})`);
+      col.addColorStop(1, `rgba(170,235,255,${0.45 * (1 - age) ** 2})`);
       ctx.fillStyle = col;
       ctx.fillRect(cx - LANE_W / 2 + 4, judgeY - 260, LANE_W - 8, 260);
       // 겹눈 육각형 파편
@@ -197,10 +205,10 @@ export function drawFrame(
   if (stats.combo >= 2) {
     ctx.save();
     ctx.textAlign = "center";
-    ctx.fillStyle = "rgba(242, 169, 59, 0.55)";
+    ctx.fillStyle = "rgba(255, 61, 139, 0.7)";
     ctx.font = "700 13px system-ui, sans-serif";
     ctx.fillText("◆ COMBO ◆", railW / 2, 70);
-    ctx.fillStyle = "rgba(236, 230, 216, 0.13)";
+    ctx.fillStyle = "rgba(232, 236, 247, 0.12)";
     ctx.font = "800 96px system-ui, sans-serif";
     ctx.fillText(String(stats.combo), railW / 2, 160);
     ctx.restore();
@@ -222,25 +230,26 @@ export function drawFrame(
   const drawHoldBody = (x: number, w: number, yTop: number, yBottom: number, active: boolean) => {
     const g = ctx.createLinearGradient(x, 0, x + w, 0);
     g.addColorStop(0, C.holdB);
-    g.addColorStop(0.5, active ? "rgba(255, 220, 140, 0.85)" : C.holdA);
+    g.addColorStop(0.5, active ? C.holdActive : C.holdA);
     g.addColorStop(1, C.holdB);
     ctx.fillStyle = g;
     ctx.fillRect(x + 10, yTop, w - 20, Math.max(0, yBottom - yTop));
     if (active) {
       ctx.save();
-      ctx.shadowColor = "#f2c14e";
+      ctx.shadowColor = "#2fd3ff";
       ctx.shadowBlur = 18;
-      ctx.fillStyle = "rgba(255, 220, 140, 0.25)";
+      ctx.fillStyle = "rgba(150, 235, 255, 0.25)";
       ctx.fillRect(x + 10, yTop, w - 20, Math.max(0, yBottom - yTop));
       ctx.restore();
     }
   };
-  const drawTap = (x: number, w: number, y: number) => {
+  const drawTap = (x: number, w: number, y: number, lane: number) => {
+    const [top, bottom] = C.tap[lane % 4]!;
     const g = ctx.createLinearGradient(0, y - 9, 0, y + 9);
-    g.addColorStop(0, C.tapTop);
-    g.addColorStop(1, C.tapBottom);
+    g.addColorStop(0, top);
+    g.addColorStop(1, bottom);
     ctx.save();
-    ctx.shadowColor = "rgba(242, 193, 78, 0.7)";
+    ctx.shadowColor = C.tapGlow[lane === 1 || lane === 2 ? 1 : 0]!;
     ctx.shadowBlur = 10;
     ctx.fillStyle = g;
     pill(ctx, x + 2, y - 8, w - 4, 16, 4);
@@ -263,18 +272,22 @@ export function drawFrame(
       const y = yOf(n.t);
       if (y < -40) break;
       if (n.type === "hold") drawHoldBody(x, w, yOf(noteEnd(n)), y, false);
-      drawTap(x, w, y);
+      drawTap(x, w, y, lane);
     }
   }
 
   // 판정선
   ctx.save();
+  const jl = ctx.createLinearGradient(0, 0, railW, 0);
+  jl.addColorStop(0, C.judge);
+  jl.addColorStop(0.5, "#ffffff");
+  jl.addColorStop(1, C.judge2);
   ctx.shadowColor = C.judge;
-  ctx.shadowBlur = 14;
-  ctx.fillStyle = C.judge;
+  ctx.shadowBlur = 16;
+  ctx.fillStyle = jl;
   ctx.fillRect(0, judgeY - 2, railW, 4);
   ctx.restore();
-  ctx.fillStyle = "#0d0c09";
+  ctx.fillStyle = "#05060c";
   ctx.fillRect(0, judgeY + 2, railW, height - judgeY - 2);
 
   // 타격 효과
@@ -285,7 +298,7 @@ export function drawFrame(
   for (let lane = 0; lane < engine.lanes; lane++) {
     const cx = 1 + lane * LANE_W + LANE_W / 2;
     const on = engine.pressed[lane];
-    ctx.fillStyle = on ? "rgba(242, 169, 59, 0.25)" : "rgba(255,255,255,0.04)";
+    ctx.fillStyle = on ? "rgba(47, 211, 255, 0.22)" : "rgba(255,255,255,0.04)";
     pill(ctx, cx - 30, height - 62, 60, 34, 8);
     ctx.fill();
     ctx.fillStyle = on ? C.judge : C.muted;
@@ -333,13 +346,13 @@ export function drawFrame(
 
   // 곡 진행 게이지 (오른쪽)
   const gx = railW + 1;
-  ctx.fillStyle = "#151310";
+  ctx.fillStyle = "#0d1020";
   ctx.fillRect(gx, 0, GAUGE_W - 1, height);
   const p = Math.min(1, Math.max(0, opts.progress ?? 0));
   const gh = (height - 8) * p;
   const g = ctx.createLinearGradient(0, height, 0, 0);
-  g.addColorStop(0, "#f2a93b");
-  g.addColorStop(1, "#ffe6a6");
+  g.addColorStop(0, "#ff3d8b");
+  g.addColorStop(1, "#2fd3ff");
   ctx.fillStyle = g;
   ctx.fillRect(gx + 2, height - 4 - gh, GAUGE_W - 5, gh);
 }

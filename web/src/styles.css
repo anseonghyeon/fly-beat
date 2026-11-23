@@ -1,60 +1,40 @@
 :root {
-  color-scheme: light dark;
-  --bg: #f4f1ea;
-  --surface: #ffffff;
-  --surface-2: #ece7dc;
-  --fg: #1d1b16;
-  --fg-muted: #6c665a;
-  --border: #d9d2c3;
-  --accent: #c27a00;
-  --accent-fg: #ffffff;
-  --danger: #b3261e;
-  --ok: #2e7d32;
+  /* 아케이드 네온 테마: 어두운 남색 바탕 + 시안(나·강조) / 마젠타(초파리) 포인트. 항상 어두운 테마. */
+  color-scheme: dark;
+  --bg: #070912;
+  --surface: #0f1222;
+  --surface-2: #181c33;
+  --fg: #e8ecf7;
+  --fg-muted: #8b93ad;
+  --border: #252b48;
+  --accent: #2fd3ff;
+  --accent-2: #ff3d8b;
+  --accent-fg: #021018;
+  --danger: #ff5c7a;
+  --ok: #2bd98c;
 
-  --stage-bg: #16140f;
-  --stage-fg: #ece6d8;
-  --stage-line: #2c2920;
-  --note-tap: #f2c14e;
-  --note-hold: #8a6d2bcc;
+  --stage-bg: #06070d;
+  --stage-fg: #e8ecf7;
+  --stage-line: #1c2036;
   --judge-perfect: #ffd54a;
   --judge-great: #7bd88f;
   --judge-good: #6ab0ff;
   --judge-miss: #ff6b6b;
 
-  /* 모드 색: 검증된 범주형 팔레트 1~3번 슬롯 (3색 모든 쌍 CVD 검증 통과) */
-  --mode-a: #2a78d6;
-  --mode-b: #eb6834;
-  --mode-c: #1baf7a;
+  /* 모드 색: 검증된 범주형 팔레트 1~3번 슬롯의 어두운 화면용 단계 (3색 모든 쌍 CVD 검증 통과) */
+  --mode-a: #3987e5;
+  --mode-b: #d95926;
+  --mode-c: #199e70;
   /* 순차(활동 세기): 한 색상 농도 */
-  --seq: #c27a00;
-  --seq-0: #ece7dc;
+  --seq: #2fd3ff;
+  --seq-0: #181c33;
   /* 발산(약화 ↔ 강화) */
-  --div-neg: #eb6834;
-  --div-pos: #2a78d6;
+  --div-neg: #d95926;
+  --div-pos: #3987e5;
 
   --radius: 10px;
   --font: system-ui, -apple-system, "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
   --mono: ui-monospace, SFMono-Regular, Menlo, monospace;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --bg: #12110d;
-    --surface: #1c1a15;
-    --surface-2: #26231c;
-    --fg: #ece6d8;
-    --fg-muted: #9c9483;
-    --border: #353127;
-    --accent: #f2a93b;
-    --accent-fg: #1b1505;
-    --mode-a: #3987e5;
-    --mode-b: #d95926;
-    --mode-c: #199e70;
-    --seq: #f2a93b;
-    --seq-0: #26231c;
-    --div-neg: #d95926;
-    --div-pos: #3987e5;
-  }
 }
 
 * {
@@ -684,13 +664,13 @@ tr.selected td {
 
 /* 대결 상황판 (플레이 중) */
 .hud-panel {
-  background: linear-gradient(160deg, #1b1812, #0f0e0b);
-  border-color: #3a3326;
-  color: #ece6d8;
+  background: linear-gradient(160deg, #121630, #080a15);
+  border-color: #2a3156;
+  color: #e8ecf7;
 }
 
 .hud-panel .muted {
-  color: #9c9483;
+  color: #8b93ad;
 }
 
 .hud {
@@ -710,9 +690,9 @@ tr.selected td {
 .hud-stop {
   margin-left: auto;
   padding: 3px 12px;
-  background: #2a261d;
-  border-color: #3a3326;
-  color: #ece6d8;
+  background: #1c2036;
+  border-color: #2a3156;
+  color: #e8ecf7;
   font-size: 0.85rem;
 }
 
@@ -739,7 +719,7 @@ tr.selected td {
 
 .hud-progress {
   height: 4px;
-  background: #2a261d;
+  background: #1c2036;
   border-radius: 2px;
   margin-top: 6px;
   overflow: hidden;
@@ -748,7 +728,7 @@ tr.selected td {
 .hud-progress span {
   display: block;
   height: 100%;
-  background: linear-gradient(90deg, #f2a93b, #ffe6a6);
+  background: linear-gradient(90deg, #2fd3ff, #b8f1ff);
 }
 
 .hud-lead-label {
@@ -757,13 +737,13 @@ tr.selected td {
   align-items: baseline;
   gap: 10px;
   font-size: 0.8rem;
-  color: #9c9483;
+  color: #8b93ad;
   letter-spacing: 0.04em;
 }
 
 .hud-lead-label b {
   font-size: 1.5rem;
-  color: #ffe6a6;
+  color: #b8f1ff;
   font-variant-numeric: tabular-nums;
   letter-spacing: 0;
 }
@@ -775,7 +755,7 @@ tr.selected td {
   border-radius: 7px;
   overflow: hidden;
   margin-top: 6px;
-  background: #2a261d;
+  background: #1c2036;
 }
 
 .tug span {
@@ -783,11 +763,11 @@ tr.selected td {
 }
 
 .tug-me {
-  background: linear-gradient(90deg, #8a5a12, #f2a93b);
+  background: linear-gradient(90deg, #0b6c94, #2fd3ff);
 }
 
 .tug-fly {
-  background: linear-gradient(90deg, #1baf7a, #0c5b40);
+  background: linear-gradient(90deg, #ff3d8b, #7a1240);
 }
 
 .tug-mid {
@@ -796,7 +776,7 @@ tr.selected td {
   top: -2px;
   bottom: -2px;
   width: 2px;
-  background: #ece6d8;
+  background: #e8ecf7;
   opacity: 0.7;
 }
 
@@ -806,7 +786,7 @@ tr.selected td {
   align-items: center;
   gap: 12px;
   padding-top: 6px;
-  border-top: 1px solid #2a261d;
+  border-top: 1px solid #1c2036;
 }
 
 .hud-rates.solo {
@@ -826,7 +806,7 @@ tr.selected td {
 
 .hud-rates .who {
   font-size: 0.75rem;
-  color: #9c9483;
+  color: #8b93ad;
 }
 
 .hud-rates b {
@@ -835,11 +815,11 @@ tr.selected td {
 }
 
 .hud-rates .me b {
-  color: #f2c14e;
+  color: #7fe3ff;
 }
 
 .hud-rates .fly b {
-  color: #3fd19c;
+  color: #ff5fa2;
 }
 
 .rate-tag {
@@ -848,8 +828,8 @@ tr.selected td {
   letter-spacing: 0.1em;
   padding: 3px 10px;
   border-radius: 3px;
-  background: #f2a93b;
-  color: #1b1505;
+  background: #2fd3ff;
+  color: #021018;
   transform: skewX(-12deg);
 }
 
@@ -858,10 +838,10 @@ tr.selected td {
   width: min(900px, 100%);
   padding: 0;
   background:
-    radial-gradient(120% 90% at 50% 0%, #26201380 0%, transparent 60%),
-    linear-gradient(170deg, #17140f, #0b0a08);
-  border: 1px solid #3a3326;
-  color: #ece6d8;
+    radial-gradient(120% 90% at 50% 0%, #1a2a5580 0%, transparent 60%),
+    linear-gradient(170deg, #0e1124, #06070d);
+  border: 1px solid #2a3156;
+  color: #e8ecf7;
   overflow: hidden;
   animation: result-in 0.28s ease-out;
 }
@@ -879,8 +859,8 @@ tr.selected td {
   gap: 12px;
   flex-wrap: wrap;
   padding: 16px 22px;
-  border-bottom: 1px solid #2a261d;
-  background: linear-gradient(90deg, #f2a93b22, transparent 60%);
+  border-bottom: 1px solid #1c2036;
+  background: linear-gradient(90deg, #2fd3ff1f, transparent 60%);
 }
 
 .result-head h2 {
@@ -893,15 +873,15 @@ tr.selected td {
   font-weight: 900;
   letter-spacing: 0.18em;
   padding: 4px 12px;
-  background: #f2a93b;
-  color: #1b1505;
+  background: #2fd3ff;
+  color: #021018;
   transform: skewX(-12deg);
 }
 
 .result-meta {
   margin-left: auto;
   font-size: 0.85rem;
-  color: #9c9483;
+  color: #8b93ad;
 }
 
 .modal.result .result-cols {
@@ -918,10 +898,10 @@ tr.selected td {
 
 .rcard {
   position: relative;
-  border: 1px solid #2f2a20;
+  border: 1px solid #232842;
   border-radius: 12px;
   padding: 14px 16px;
-  background: #12100c;
+  background: #0b0e1d;
   overflow: hidden;
 }
 
@@ -933,11 +913,11 @@ tr.selected td {
 }
 
 .rcard.me::before {
-  background: linear-gradient(90deg, #f2a93b, #ffe6a6);
+  background: linear-gradient(90deg, #2fd3ff, #b8f1ff);
 }
 
 .rcard.fly::before {
-  background: linear-gradient(90deg, #1baf7a, #7be8c0);
+  background: linear-gradient(90deg, #ff3d8b, #ff9cc6);
 }
 
 .rcard-head {
@@ -953,7 +933,7 @@ tr.selected td {
 
 .rcard-sub {
   font-size: 0.75rem;
-  color: #9c9483;
+  color: #8b93ad;
 }
 
 .outcome {
@@ -967,18 +947,18 @@ tr.selected td {
 
 .outcome.win {
   background: #ffd54a;
-  color: #1b1505;
+  color: #021018;
   box-shadow: 0 0 18px #ffd54a66;
 }
 
 .outcome.lose {
-  background: #2a261d;
-  color: #9c9483;
+  background: #1c2036;
+  color: #8b93ad;
 }
 
 .outcome.draw {
-  background: #3a3326;
-  color: #ece6d8;
+  background: #2a3156;
+  color: #e8ecf7;
 }
 
 .rcard-main {
@@ -1026,13 +1006,13 @@ tr.selected td {
 }
 
 .grade.g-d {
-  color: #8a8272;
+  color: #79809a;
 }
 
 .rcard-score .label {
   font-size: 0.7rem;
   letter-spacing: 0.16em;
-  color: #9c9483;
+  color: #8b93ad;
 }
 
 .rcard-score .score {
@@ -1055,11 +1035,11 @@ tr.selected td {
 }
 
 .rcard.me .rate b {
-  color: #f2c14e;
+  color: #7fe3ff;
 }
 
 .rcard.fly .rate b {
-  color: #3fd19c;
+  color: #ff5fa2;
 }
 
 .badge-fc {
@@ -1104,7 +1084,7 @@ tr.selected td {
 
 .jbar {
   height: 6px;
-  background: #221f18;
+  background: #171a2c;
   border-radius: 3px;
   overflow: hidden;
 }
@@ -1134,13 +1114,13 @@ tr.selected td {
   justify-content: space-between;
   margin-top: 10px;
   padding-top: 8px;
-  border-top: 1px solid #221f18;
+  border-top: 1px solid #171a2c;
   font-size: 0.8rem;
-  color: #9c9483;
+  color: #8b93ad;
 }
 
 .rcard-foot b {
-  color: #ece6d8;
+  color: #e8ecf7;
   margin-left: 4px;
   font-variant-numeric: tabular-nums;
 }
@@ -1150,7 +1130,7 @@ tr.selected td {
   align-items: center;
   gap: 12px;
   padding: 12px 22px 16px;
-  border-top: 1px solid #2a261d;
+  border-top: 1px solid #1c2036;
 }
 
 .ok-note {
@@ -1165,9 +1145,9 @@ tr.selected td {
 
 .result-close {
   margin-left: auto;
-  background: #f2a93b;
-  border-color: #f2a93b;
-  color: #1b1505;
+  background: #2fd3ff;
+  border-color: #2fd3ff;
+  color: #021018;
   font-weight: 800;
 }
 
