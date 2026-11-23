@@ -36,7 +36,7 @@ function Bar({ label, v, max, hint }: { label: string; v: number; max: number; h
 export function BrainPanel({ mode, activity }: { mode: Mode | null; activity: Activity | null }) {
   if (mode === "A") {
     return (
-      <p className="muted">모드 A 는 커넥톰을 쓰지 않는 일반 신경망(MLP)이라 뇌 활동이 없습니다.</p>
+      <p className="muted">AI 로봇은 초파리 뇌가 아닌 일반 인공신경망이라 뇌 활동이 없습니다.</p>
     );
   }
   if (!activity) return <p className="muted">재생을 시작하면 초파리 뇌 활동이 표시됩니다.</p>;
