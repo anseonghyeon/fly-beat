@@ -31,13 +31,13 @@ export const REGION_COLORS: Record<string, string> = {
   vnc: "#9085e9",
 };
 
-const BG = "#16140f";
-const BODY_FILL = "#221f18";
-const BODY_LINE = "#4a4436";
-const DOT_DIM = "rgba(236, 230, 216, 0.13)";
-const TEXT = "#ece6d8";
-const TEXT_MUTED = "#9c9483";
-const LEG_IDLE = "#6c6556";
+const BG = "#06070d";
+const BODY_FILL = "#121630";
+const BODY_LINE = "#2f3866";
+const DOT_DIM = "rgba(200, 215, 255, 0.12)";
+const TEXT = "#e8ecf7";
+const TEXT_MUTED = "#8b93ad";
+const LEG_IDLE = "#4a5378";
 
 interface Pt {
   x: number;
@@ -193,7 +193,7 @@ export class FlyRenderer {
       // 겹눈 (시각엽 위치)
       ctx.save();
       ctx.globalAlpha = 0.6;
-      ctx.fillStyle = "#3a1f1a";
+      ctx.fillStyle = "#3a1530";
       for (const side of [-1, 1]) {
         ctx.beginPath();
         ctx.ellipse(cx + side * hdRx * 0.78, hdY, hdRx * 0.3, hdRy * 0.85, 0, 0, Math.PI * 2);
@@ -329,7 +329,7 @@ export class FlyRenderer {
       this.prevPressed[L.lane] = isDown;
       this.tapAge[L.lane]! += dt;
       const a = Math.min(1, (motor[L.lane] ?? 0) / mMax);
-      const color = isDown ? "#f2c14e" : mix(LEG_IDLE, REGION_COLORS.motor!, a * 0.8);
+      const color = isDown ? "#2fd3ff" : mix(LEG_IDLE, REGION_COLORS.motor!, a * 0.8);
       const tip = this.leg(
         ctx,
         b,
@@ -344,7 +344,7 @@ export class FlyRenderer {
       const age = this.tapAge[L.lane]!;
       if (age < 350) {
         ctx.save();
-        ctx.strokeStyle = "#f2c14e";
+        ctx.strokeStyle = "#2fd3ff";
         ctx.globalAlpha = 1 - age / 350;
         ctx.lineWidth = 2;
         ctx.beginPath();
@@ -352,7 +352,7 @@ export class FlyRenderer {
         ctx.stroke();
         ctx.restore();
       }
-      ctx.fillStyle = isDown ? "#f2c14e" : TEXT_MUTED;
+      ctx.fillStyle = isDown ? "#2fd3ff" : TEXT_MUTED;
       ctx.font = `${isDown ? 700 : 500} 11px system-ui, sans-serif`;
       ctx.textAlign = L.side < 0 ? "right" : "left";
       ctx.fillText(
@@ -420,7 +420,7 @@ export class FlyRenderer {
         const a = Math.min(1, v / max);
         hex(ctx, col.x, y, r);
         ctx.fillStyle =
-          a > 0.05 ? `rgba(242, 193, 78, ${0.25 + 0.75 * a})` : "rgba(236,230,216,0.08)";
+          a > 0.05 ? `rgba(47, 211, 255, ${0.25 + 0.75 * a})` : "rgba(200,215,255,0.08)";
         ctx.fill();
       });
     }

@@ -430,7 +430,7 @@ export default function Play() {
                 ))}
               </div>
               <p className="muted small">
-                점 = 뉴런 세포체(MaleCNS 실측 좌표) · 빛남 = 활동 · 노란 다리 = 누름 · 몸 윤곽은
+                점 = 뉴런 세포체(MaleCNS 실측 좌표) · 빛남 = 활동 · 빛나는 다리 = 누름 · 몸 윤곽은
                 도식
               </p>
             </>
