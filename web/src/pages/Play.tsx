@@ -94,7 +94,7 @@ export default function Play() {
       .get<CheckpointSummary[]>("/api/checkpoints")
       .then((cs) => {
         setCkpts(cs);
-        const c = cs.find((x) => x.mode === "C") ?? cs[0];
+        const c = cs.find((x) => x.mode === "B") ?? cs[0];
         if (c) setCkptId(c.id);
       })
       .catch(() => undefined);
@@ -378,9 +378,8 @@ export default function Play() {
                 ))}
               </div>
               <p className="muted small">
-                점 하나가 뉴런 하나의 세포체 위치입니다 (MaleCNS 실측 좌표, 일부는 추정). 빛나는
-                점이 지금 활동하는 뉴런이고, 초파리가 키를 누르면 해당 다리가 뻗으며 노랗게
-                표시됩니다. 몸 윤곽은 뉴런 분포로 그린 도식입니다.
+                점 = 뉴런 세포체(MaleCNS 실측 좌표) · 빛남 = 활동 · 노란 다리 = 누름 · 몸 윤곽은
+                도식
               </p>
             </>
           ) : (
