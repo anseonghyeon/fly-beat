@@ -132,7 +132,7 @@ function PlayerCard({
   );
 }
 
-/** 결과 화면 본문 (결과 페이지에서 사용). Enter = 다시 하기, Esc = 로비로 */
+/** 결과 화면 본문 (결과 페이지에서 사용). 다시 하기 버튼에 포커스가 있어 Enter 로 바로 다시 시작 */
 export function ResultView({
   result,
   onRetry,
@@ -146,12 +146,7 @@ export function ResultView({
 
   useEffect(() => {
     retryRef.current?.focus();
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onLobby();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onLobby]);
+  }, []);
 
   const { human, fly } = result;
   const diff = result.chartTitle.match(DIFF_RE)?.[1] ?? null;
