@@ -151,7 +151,7 @@
 
 ## 6. 서버 (`server/`)
 
-- **기술:** Python 3.12+, FastAPI, Uvicorn, PyTorch, Gymnasium, Stable-Baselines3, safetensors, pyarrow, scipy. 패키지 관리는 `uv`로 하고 `uv.lock`으로 버전을 고정한다.
+- **기술:** Python 3.11+, FastAPI, Uvicorn, PyTorch, Gymnasium, Stable-Baselines3, safetensors, pyarrow, scipy. 패키지 관리는 표준 `venv` + `pip`(`pyproject.toml`)로 하고, `server/requirements.lock`으로 버전을 고정한다.
 - **REST API**
 
   | 메서드 | 경로 | 설명 |
@@ -188,7 +188,7 @@
 - **파일 경로를 클라이언트 입력으로 받지 않는다.** 채보와 체크포인트는 ID로만 지정하고, 허용 디렉터리 안에서만 찾는다(경로 탈출 방지).
 - 체크포인트는 **`safetensors`** 형식으로 저장하고, 메타데이터는 JSON으로 둔다. pickle 기반 로딩은 쓰지 않는다. 불가피하게 `torch.load`를 쓸 때는 `weights_only=True`로 한다.
 - 다운로드 스크립트는 HTTPS와 SHA-256 체크섬으로 무결성을 검증한다.
-- 의존성 버전을 고정하고(`uv.lock`, `package-lock.json`), Dependabot이나 `pip-audit`/`npm audit` CI를 둔다.
+- 의존성 버전을 고정하고(`requirements.lock`, `package-lock.json`), Dependabot이나 `pip-audit`/`npm audit` CI를 둔다.
 - 비밀값은 필요 없도록 설계한다. 필요해지면 `.env`로만 받고 `.env.example`만 커밋한다.
 
 ## 9. 저장소 구조 (안)
@@ -233,8 +233,9 @@ fly-beat/
 git clone https://github.com/<owner>/fly-beat.git
 cd fly-beat
 ./scripts/download_data.sh          # 약 1.1GB 다운로드 + 검증
-cd server && uv sync && uv run python -m flybeat.brain.preprocess
-uv run uvicorn flybeat.api.main:app --host 127.0.0.1 --port 8000
+cd server && python3 -m venv .venv && .venv/bin/pip install -r requirements.lock -e .
+.venv/bin/python -m flybeat.brain.preprocess
+.venv/bin/python -m flybeat.api   # 127.0.0.1:8000
 # 다른 터미널
 cd web && npm ci && npm run dev     # http://localhost:5173
 ```
