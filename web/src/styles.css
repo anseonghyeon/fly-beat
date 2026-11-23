@@ -627,3 +627,70 @@ tr.selected td {
   justify-content: flex-end;
   margin-top: 16px;
 }
+
+/* Play 가운데 열을 한 화면에 (설정 + 몸과 뇌 + 수치) */
+.versus .center {
+  gap: 12px;
+}
+
+.versus .center .panel {
+  padding: 12px 14px;
+}
+
+.versus .center .panel h2 {
+  margin-bottom: 8px;
+}
+
+.versus .center .panel-head {
+  margin-bottom: 6px;
+}
+
+.versus .center .controls {
+  gap: 8px;
+}
+
+.versus .center p {
+  margin: 6px 0 0;
+}
+
+.versus .fly-canvas {
+  height: 300px;
+}
+
+.versus .legend {
+  gap: 10px;
+  font-size: 0.75rem;
+  margin: 6px 0 0;
+}
+
+.versus .brain-panel {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.versus .brain-panel h3 {
+  font-size: 0.8rem;
+  margin-bottom: 4px;
+}
+
+.versus .brain-panel > div:first-child > .muted.small {
+  display: none;
+}
+
+.versus .heat {
+  width: 26px;
+  height: 14px;
+}
+
+.versus .hbar {
+  grid-template-columns: 72px 1fr 38px;
+  gap: 6px;
+  font-size: 0.72rem;
+  margin-bottom: 2px;
+}
+
+@media (max-width: 1180px) {
+  .versus .brain-panel {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
