@@ -40,3 +40,42 @@ export function saveSettings(s: PlaySettings): void {
     /* 저장 불가(사생활 보호 모드 등) — 무시 */
   }
 }
+
+/** 채보별 내 최고 기록 (브라우저에만 저장) */
+export interface BestRecord {
+  score: number;
+  rate: number;
+  maxCombo: number;
+  fullCombo: boolean;
+}
+
+const RECORDS_KEY = "flybeat.records";
+
+export function loadRecords(): Record<string, BestRecord> {
+  try {
+    const raw = localStorage.getItem(RECORDS_KEY);
+    const v = raw ? (JSON.parse(raw) as unknown) : null;
+    return v && typeof v === "object" ? (v as Record<string, BestRecord>) : {};
+  } catch {
+    return {};
+  }
+}
+
+/** 기존 기록보다 좋으면 저장하고, 새 기록이면 true */
+export function saveRecord(chartId: string, rec: BestRecord): boolean {
+  const all = loadRecords();
+  const prev = all[chartId];
+  if (prev && prev.score >= rec.score) return false;
+  all[chartId] = {
+    score: rec.score,
+    rate: rec.rate,
+    maxCombo: Math.max(rec.maxCombo, prev?.maxCombo ?? 0),
+    fullCombo: rec.fullCombo || (prev?.fullCombo ?? false),
+  };
+  try {
+    localStorage.setItem(RECORDS_KEY, JSON.stringify(all));
+  } catch {
+    /* 저장 불가 — 무시 */
+  }
+  return true;
+}
