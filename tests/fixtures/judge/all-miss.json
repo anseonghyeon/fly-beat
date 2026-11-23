@@ -1,0 +1,67 @@
+{
+ "name": "all-miss",
+ "chart": {
+  "id": "fixture",
+  "title": "fixture",
+  "bpm": 120.0,
+  "offsetMs": 0,
+  "lanes": 4,
+  "notes": [
+   {
+    "t": 500,
+    "lane": 0,
+    "type": "tap"
+   },
+   {
+    "t": 800,
+    "lane": 3,
+    "type": "hold",
+    "dur": 300
+   }
+  ]
+ },
+ "inputs": [],
+ "expected": {
+  "events": [
+   {
+    "t": 620,
+    "lane": 0,
+    "note": 0,
+    "part": "head",
+    "judgment": "MISS",
+    "offset": 0
+   },
+   {
+    "t": 920,
+    "lane": 3,
+    "note": 1,
+    "part": "head",
+    "judgment": "MISS",
+    "offset": 0
+   },
+   {
+    "t": 920,
+    "lane": 3,
+    "note": 1,
+    "part": "tail",
+    "judgment": "MISS",
+    "offset": 0
+   }
+  ],
+  "stats": {
+   "counts": {
+    "PERFECT": 0,
+    "GREAT": 0,
+    "GOOD": 0,
+    "MISS": 3
+   },
+   "empty": 0,
+   "combo": 0,
+   "maxCombo": 0,
+   "score": 0.0,
+   "judged": 3,
+   "total": 3,
+   "accuracy": 0.0
+  }
+ }
+}

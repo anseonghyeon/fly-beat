@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "fly-beat chart",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "title", "bpm", "offsetMs", "lanes", "notes"],
+  "properties": {
+    "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]{0,63}$" },
+    "title": { "type": "string", "minLength": 1, "maxLength": 100 },
+    "artist": { "type": "string", "maxLength": 100 },
+    "bpm": { "type": "number", "minimum": 30, "maximum": 400 },
+    "offsetMs": { "type": "integer", "minimum": 0, "maximum": 60000 },
+    "lanes": { "type": "integer", "minimum": 1, "maximum": 8 },
+    "audio": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]{0,63}\\.(ogg|mp3|wav)$" },
+    "notes": {
+      "type": "array",
+      "maxItems": 20000,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["t", "lane", "type"],
+        "properties": {
+          "t": { "type": "integer", "minimum": 0, "maximum": 1800000 },
+          "lane": { "type": "integer", "minimum": 0, "maximum": 7 },
+          "type": { "enum": ["tap", "hold"] },
+          "dur": { "type": "integer", "minimum": 1, "maximum": 60000 }
+        }
+      }
+    }
+  }
+}
