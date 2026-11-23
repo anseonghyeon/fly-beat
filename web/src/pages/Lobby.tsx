@@ -13,7 +13,7 @@ import { Logo } from "../components/Logo";
 import { gradeOf } from "../components/ResultView";
 import { unlockAudio } from "../game/audio";
 import { LANE_KEYS_TEXT } from "../game/keys";
-import { OPPONENTS, SOLO, strengthOf } from "../game/opponents";
+import { OPPONENTS, strengthOf } from "../game/opponents";
 import {
   DEFAULT_SETTINGS,
   loadRecords,
@@ -110,10 +110,9 @@ export default function Lobby() {
       .get<CheckpointSummary[]>("/api/checkpoints")
       .then((cs) => {
         setCkpts([...cs].sort((a, b) => OPP_ORDER[a.mode] - OPP_ORDER[b.mode]));
-        // 처음이거나 저장된 상대가 사라졌으면 B(없으면 첫 번째). 직접 고른 "혼자"는 유지.
-        const savedSolo = loadSettings()?.ckptId === "";
+        // 처음이거나 저장된 상대가 사라졌으면 본능 초파리(B), 없으면 첫 번째 상대
         setSettings((s) =>
-          (s.ckptId === "" && savedSolo) || cs.some((c) => c.id === s.ckptId)
+          cs.some((c) => c.id === s.ckptId)
             ? s
             : { ...s, ckptId: (cs.find((c) => c.mode === "B") ?? cs[0])?.id ?? "" },
         );
@@ -159,7 +158,8 @@ export default function Lobby() {
   );
 
   const cycleOpponent = useCallback(() => {
-    const opps = ["", ...ckpts.map((c) => c.id)];
+    if (ckpts.length === 0) return;
+    const opps = ckpts.map((c) => c.id);
     set({ ckptId: opps[(opps.indexOf(settings.ckptId) + 1) % opps.length]! });
   }, [ckpts, settings.ckptId, set]);
 
@@ -169,13 +169,14 @@ export default function Lobby() {
     [settings.speed, set],
   );
 
+  const ready = !!chart && ckpts.some((c) => c.id === settings.ckptId);
   const start = useCallback(() => {
-    if (!chart) return;
+    if (!chart || !ready) return;
     unlockAudio(); // 이 사용자 동작 안에서 오디오를 열어 둬야 플레이 화면에서 바로 소리가 난다
     const s = { ...settings, chartId: chart.id };
     saveSettings(s);
     navigate("/play", { state: s });
-  }, [chart, settings, navigate]);
+  }, [chart, ready, settings, navigate]);
 
   // 분류를 바꿨는데 선택 곡이 새 목록에 없으면 첫 곡을 고른다
   const changeCategory = useCallback(
@@ -351,43 +352,45 @@ export default function Lobby() {
 
           <div className="opt-title">대결 상대</div>
           <div className="opp-list" role="radiogroup" aria-label="대결 상대">
-            {[null, ...ckpts].map((c) => {
-              const info = c ? OPPONENTS[c.mode] : null;
-              const id = c?.id ?? "";
-              const on = settings.ckptId === id;
-              const lv = strengthOf(c?.accuracy);
+            {ckpts.map((c) => {
+              const info = OPPONENTS[c.mode];
+              const on = settings.ckptId === c.id;
+              const lv = strengthOf(c.accuracy);
               return (
                 <button
-                  key={id || "solo"}
+                  key={c.id}
                   role="radio"
                   aria-checked={on}
-                  className={`opp-row ${on ? "on" : ""} ${info ? (info.isFly ? "fly" : "robot") : "solo"}`}
-                  onClick={() => set({ ckptId: id })}
+                  className={`opp-row ${on ? "on" : ""} ${info.isFly ? "fly" : "robot"}`}
+                  onClick={() => set({ ckptId: c.id })}
                 >
                   <span className="opp-icon">
-                    <OpponentIcon kind={info ? info.icon : "solo"} size={20} />
+                    <OpponentIcon kind={info.icon} size={20} />
                   </span>
                   <span className="opp-text">
-                    <b>{info ? info.name : SOLO.name}</b>
+                    <b>{info.name}</b>
                   </span>
-                  {c && (
-                    <span
-                      className="opp-power"
-                      title={`검증 정확도 ${c.accuracy?.toFixed(1) ?? "-"}%`}
-                    >
-                      <span className="pips" aria-label={`실력 ${lv}/5`}>
-                        {[1, 2, 3, 4, 5].map((i) => (
-                          <i key={i} className={i <= lv ? "lit" : ""} />
-                        ))}
-                      </span>
-                      <small>{c.accuracy?.toFixed(0) ?? "-"}%</small>
+                  <span
+                    className="opp-power"
+                    title={`검증 정확도 ${c.accuracy?.toFixed(1) ?? "-"}%`}
+                  >
+                    <span className="pips" aria-label={`실력 ${lv}/5`}>
+                      {[1, 2, 3, 4, 5].map((i) => (
+                        <i key={i} className={i <= lv ? "lit" : ""} />
+                      ))}
                     </span>
-                  )}
+                    <small>{c.accuracy?.toFixed(0) ?? "-"}%</small>
+                  </span>
                 </button>
               );
             })}
           </div>
-          <button className="start-btn" onClick={start} disabled={!chart}>
+          {ckpts.length === 0 && (
+            <p className="muted small">
+              대결할 상대가 없어요. Esc 메뉴의 학습에서 상대를 먼저 학습시켜 주세요.
+            </p>
+          )}
+          <button className="start-btn" onClick={start} disabled={!ready}>
             START
           </button>
         </aside>
