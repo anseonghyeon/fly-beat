@@ -13,8 +13,8 @@ import { BrainPanel } from "../components/BrainPanel";
 import type { MatchResult } from "../components/ResultView";
 import { SynthAudio } from "../game/audio";
 import { JudgeEngine } from "../game/engine";
-import { LANE_KEY_CODES, LANE_KEY_LABELS, LANE_KEYS_TEXT } from "../game/keys";
-import { OPPONENTS, SOLO } from "../game/opponents";
+import { LANE_KEY_CODES, LANE_KEY_LABELS } from "../game/keys";
+import { OPPONENTS } from "../game/opponents";
 import { FlyRenderer, REGION_COLORS, type Layout, type ViewName } from "../game/flyRenderer";
 import { canvasSize, drawFrame, HitEffects, scoreOf, type LastJudgment } from "../game/renderer";
 import { loadSettings, saveLastResult, saveRecord, type PlaySettings } from "../game/settings";
@@ -375,15 +375,10 @@ function PlaySession({ settings }: { settings: PlaySettings }) {
 
   const toLobby = useCallback(() => navigate("/"), [navigate]);
   const { width, height } = canvasSize(4);
-  const flyLabel = !ckptId ? SOLO.name : flyMode ? MODE_NAME[flyMode] : "불러오는 중…";
 
   return (
     <div className="versus">
       <section className="rail" aria-label="내 레일">
-        <div className="rail-head">
-          <b>나</b>
-          <span className="muted small">{LANE_KEYS_TEXT}</span>
-        </div>
         <div className="stage">
           <canvas ref={humanCanvas} width={width} height={height} />
         </div>
@@ -459,10 +454,6 @@ function PlaySession({ settings }: { settings: PlaySettings }) {
       </section>
 
       <section className="rail" aria-label="초파리 레일">
-        <div className="rail-head">
-          <b>{flyMode && !OPPONENTS[flyMode].isFly ? "상대" : "초파리"}</b>
-          <span className="muted small">{flyLabel}</span>
-        </div>
         <div className={`stage ${ckptId ? "" : "dim"}`}>
           <canvas ref={flyCanvas} width={width} height={height} />
         </div>

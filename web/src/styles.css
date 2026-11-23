@@ -524,15 +524,6 @@ tr.selected td {
   top: 12px;
 }
 
-.rail-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 8px;
-  margin-bottom: 6px;
-  padding: 0 2px;
-}
-
 .stage.dim {
   opacity: 0.35;
 }
