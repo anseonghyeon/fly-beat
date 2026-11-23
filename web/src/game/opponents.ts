@@ -38,8 +38,6 @@ export const OPPONENTS: Record<Mode, OpponentInfo> = {
   },
 };
 
-export const SOLO = { name: "혼자 연습", desc: "상대 없이 나 혼자 쳐요" };
-
 /** 정확도(%) → 실력 단계 1~5 */
 export function strengthOf(acc: number | null | undefined): number {
   if (acc == null) return 0;

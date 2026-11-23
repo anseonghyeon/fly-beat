@@ -75,7 +75,8 @@ export default function Play() {
   const [settings] = useState<PlaySettings | null>(
     () => (location.state as PlaySettings | null) ?? loadSettings(),
   );
-  if (!settings) return <Navigate to="/" replace />;
+  // 상대 없이 혼자 하는 플레이는 없다: 상대가 정해지지 않았으면 로비로
+  if (!settings || !settings.ckptId) return <Navigate to="/" replace />;
   return <PlaySession settings={settings} />;
 }
 

@@ -20,27 +20,6 @@ export function RobotIcon({ size = 22 }: { size?: number }) {
   );
 }
 
-export function OpponentIcon({
-  kind,
-  size = 22,
-}: {
-  kind: "robot" | "fly" | "solo";
-  size?: number;
-}) {
-  if (kind === "robot") return <RobotIcon size={size} />;
-  if (kind === "fly") return <FlyIcon size={size} />;
-  return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      aria-hidden
-    >
-      <circle cx="12" cy="8" r="3.5" />
-      <path d="M5 20c1-4 4-6 7-6s6 2 7 6" />
-    </svg>
-  );
+export function OpponentIcon({ kind, size = 22 }: { kind: "robot" | "fly"; size?: number }) {
+  return kind === "robot" ? <RobotIcon size={size} /> : <FlyIcon size={size} />;
 }
