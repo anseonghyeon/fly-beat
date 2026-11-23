@@ -1,7 +1,7 @@
 /** 로비에서 정한 대결 설정. 마지막 설정은 브라우저에 기억해 둔다 (실패해도 동작에는 지장 없음). */
 export interface PlaySettings {
   chartId: string;
-  /** 빈 문자열 = 초파리 없이 혼자 */
+  /** 대결 상대 체크포인트 ID (빈 문자열 = 아직 고르지 않음) */
   ckptId: string;
   speed: number;
 }
