@@ -14,6 +14,7 @@ import { ResultModal, type MatchResult } from "../components/ResultModal";
 import { SynthAudio } from "../game/audio";
 import { JudgeEngine } from "../game/engine";
 import { LANE_KEY_CODES, LANE_KEY_LABELS, LANE_KEYS_TEXT } from "../game/keys";
+import { OPPONENTS, SOLO } from "../game/opponents";
 import { FlyRenderer, REGION_COLORS, type Layout, type ViewName } from "../game/flyRenderer";
 import { canvasSize, drawFrame, HitEffects, scoreOf, type LastJudgment } from "../game/renderer";
 import { loadSettings, saveRecord, type PlaySettings } from "../game/settings";
@@ -25,9 +26,9 @@ const KEY_LABELS = [...LANE_KEY_LABELS];
 const LEAD_IN_S = 1.0;
 
 const MODE_NAME: Record<Mode, string> = {
-  A: "A · MLP (초파리 아님)",
-  B: "B · 커넥톰 매핑",
-  C: "C · 도파민 가소성",
+  A: OPPONENTS.A.name,
+  B: OPPONENTS.B.name,
+  C: OPPONENTS.C.name,
 };
 
 type Status = "idle" | "loading" | "playing";
@@ -363,7 +364,7 @@ function PlaySession({ settings }: { settings: PlaySettings }) {
 
   const toLobby = useCallback(() => navigate("/"), [navigate]);
   const { width, height } = canvasSize(4);
-  const flyLabel = !ckptId ? "혼자 플레이" : flyMode ? MODE_NAME[flyMode] : "불러오는 중…";
+  const flyLabel = !ckptId ? SOLO.name : flyMode ? MODE_NAME[flyMode] : "불러오는 중…";
 
   return (
     <div className="versus">
@@ -443,7 +444,7 @@ function PlaySession({ settings }: { settings: PlaySettings }) {
 
       <section className="rail" aria-label="초파리 레일">
         <div className="rail-head">
-          <b>초파리</b>
+          <b>{flyMode && !OPPONENTS[flyMode].isFly ? "상대" : "초파리"}</b>
           <span className="muted small">{flyLabel}</span>
         </div>
         <div className={`stage ${ckptId ? "" : "dim"}`}>

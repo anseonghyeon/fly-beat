@@ -7,11 +7,13 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../api/client";
 import type { CheckpointSummary, Mode } from "../api/types";
+import { OpponentIcon } from "../components/OpponentIcon";
 import { Cover } from "../components/Cover";
 import { Logo } from "../components/Logo";
 import { gradeOf } from "../components/ResultModal";
 import { unlockAudio } from "../game/audio";
 import { LANE_KEYS_TEXT } from "../game/keys";
+import { OPPONENTS, SOLO, strengthOf } from "../game/opponents";
 import {
   DEFAULT_SETTINGS,
   loadRecords,
@@ -26,11 +28,8 @@ const DIFF_RE = /\((EASY|NORMAL|HARD)\)\s*$/;
 const DIFFS = ["EASY", "NORMAL", "HARD"] as const;
 type Diff = (typeof DIFFS)[number] | "—";
 
-const MODE_INFO: Record<Mode, { name: string; desc: string }> = {
-  A: { name: "A · MLP", desc: "일반 인공신경망 (초파리 아님)" },
-  B: { name: "B · 커넥톰 매핑", desc: "뇌는 그대로, 해석기만 학습" },
-  C: { name: "C · 도파민 가소성", desc: "도파민으로 시냅스가 학습" },
-};
+/** 상대 목록 순서: 혼자 → 초파리(학습·본능) → AI 로봇 */
+const OPP_ORDER: Record<Mode, number> = { C: 1, B: 2, A: 3 };
 
 type SortKey = "title" | "bpm" | "notes";
 const SORTS: { key: SortKey; label: string }[] = [
@@ -110,7 +109,7 @@ export default function Lobby() {
     api
       .get<CheckpointSummary[]>("/api/checkpoints")
       .then((cs) => {
-        setCkpts(cs);
+        setCkpts([...cs].sort((a, b) => OPP_ORDER[a.mode] - OPP_ORDER[b.mode]));
         // 처음이거나 저장된 상대가 사라졌으면 B(없으면 첫 번째). 직접 고른 "혼자"는 유지.
         const savedSolo = loadSettings()?.ckptId === "";
         setSettings((s) =>
@@ -274,13 +273,11 @@ export default function Lobby() {
             ))}
           </select>
         </label>
-        <button className="opp-chip" onClick={cycleOpponent}>
+        <div className={`opp-chip ${opponent ? "" : "solo"}`} aria-live="polite">
           <span className="opp-chip-label">상대</span>
-          <b>{opponent ? MODE_INFO[opponent.mode].name : "혼자 플레이"}</b>
-          <span className="opp-chip-acc">
-            {opponent ? `${opponent.accuracy?.toFixed(1) ?? "-"}%` : "SOLO"}
-          </span>
-        </button>
+          <OpponentIcon kind={opponent ? OPPONENTS[opponent.mode].icon : "solo"} size={20} />
+          <b>{opponent ? OPPONENTS[opponent.mode].name : SOLO.name}</b>
+        </div>
       </header>
 
       <div className="lobby-body">
@@ -295,7 +292,7 @@ export default function Lobby() {
                 <span className="muted small">{categoryOf(current)}</span>
               </div>
               <div className="song-hero">
-                <Cover title={current.title} size={132} />
+                <Cover title={current.title} size={112} />
                 <div className="song-hero-meta">
                   <h2>{current.title}</h2>
                   <div className="muted">{current.artist || "—"}</div>
@@ -348,7 +345,7 @@ export default function Lobby() {
           )}
 
           <div className="opt-title">옵션</div>
-          <div className="opt-tiles">
+          <div className="opt-tiles two">
             <button
               className="tile speed"
               onClick={() => changeSpeed(settings.speed >= 1.5 ? -1.2 : 0.1)}
@@ -364,14 +361,47 @@ export default function Lobby() {
               <span className="tile-k">SOUND</span>
               <b>{settings.sound ? "ON" : "OFF"}</b>
             </button>
-            <button className="tile opp" onClick={cycleOpponent}>
-              <span className="tile-k">상대</span>
-              <b>{opponent ? opponent.mode : "SOLO"}</b>
-            </button>
           </div>
-          <p className="muted small opp-desc">
-            {opponent ? MODE_INFO[opponent.mode].desc : "초파리 없이 혼자 연습"}
-          </p>
+
+          <div className="opt-title">대결 상대</div>
+          <div className="opp-list" role="radiogroup" aria-label="대결 상대">
+            {[null, ...ckpts].map((c) => {
+              const info = c ? OPPONENTS[c.mode] : null;
+              const id = c?.id ?? "";
+              const on = settings.ckptId === id;
+              const lv = strengthOf(c?.accuracy);
+              return (
+                <button
+                  key={id || "solo"}
+                  role="radio"
+                  aria-checked={on}
+                  className={`opp-row ${on ? "on" : ""} ${info ? (info.isFly ? "fly" : "robot") : "solo"}`}
+                  onClick={() => set({ ckptId: id })}
+                >
+                  <span className="opp-icon">
+                    <OpponentIcon kind={info ? info.icon : "solo"} size={20} />
+                  </span>
+                  <span className="opp-text">
+                    <b>{info ? info.name : SOLO.name}</b>
+                  </span>
+                  {c && (
+                    <span
+                      className="opp-power"
+                      title={`검증 정확도 ${c.accuracy?.toFixed(1) ?? "-"}%`}
+                    >
+                      <span className="pips" aria-label={`실력 ${lv}/5`}>
+                        {[1, 2, 3, 4, 5].map((i) => (
+                          <i key={i} className={i <= lv ? "lit" : ""} />
+                        ))}
+                      </span>
+                      <small>{c.accuracy?.toFixed(0) ?? "-"}%</small>
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+          <p className="opp-desc">{opponent ? OPPONENTS[opponent.mode].desc : SOLO.desc}</p>
           <button className="start-btn" onClick={start} disabled={!chart}>
             START
           </button>

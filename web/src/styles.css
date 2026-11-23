@@ -1633,8 +1633,8 @@ kbd {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
-  padding: 8px 4px;
+  gap: 0;
+  padding: 5px 4px;
   border-radius: 10px;
   background: #181c33;
   border: 1px solid #2a3156;
@@ -1648,7 +1648,7 @@ kbd {
 }
 
 .tile b {
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   font-weight: 900;
   font-variant-numeric: tabular-nums;
 }
@@ -1667,7 +1667,9 @@ kbd {
 }
 
 .opp-desc {
-  margin: -4px 0 0;
+  margin: -2px 0 0;
+  font-size: 0.78rem;
+  color: #ff9cc6;
 }
 
 .song-card .start-btn {
@@ -1843,4 +1845,118 @@ kbd {
 
 .key-hints .sp {
   flex: 1;
+}
+
+/* 대결 상대 고르기 */
+.opt-tiles.two {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.opp-list {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.opp-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 8px;
+  text-align: left;
+  border-radius: 10px;
+  background: #181c33;
+  border: 1px solid #2a3156;
+}
+
+.opp-row:hover {
+  border-color: #4a5378;
+}
+
+.opp-icon {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  flex: none;
+  border-radius: 50%;
+  background: #0b0e1d;
+  color: #8b93ad;
+}
+
+.opp-row.fly .opp-icon {
+  color: #ff5fa2;
+}
+
+.opp-row.robot .opp-icon {
+  color: #6ab0ff;
+}
+
+.opp-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+
+.opp-text b {
+  font-size: 0.88rem;
+  white-space: nowrap;
+}
+
+.opp-text small {
+  font-size: 0.72rem;
+  color: var(--fg-muted);
+  line-height: 1.3;
+}
+
+.opp-power {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.opp-power small {
+  font-size: 0.68rem;
+  color: var(--fg-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.pips {
+  display: flex;
+  gap: 2px;
+}
+
+.pips i {
+  width: 6px;
+  height: 10px;
+  border-radius: 1px;
+  background: #2a3156;
+  transform: skewX(-12deg);
+}
+
+.pips i.lit {
+  background: #ffd54a;
+}
+
+.opp-row.on {
+  border-color: #ff3d8b;
+  background: linear-gradient(90deg, #ff3d8b33, #181c33 70%);
+  box-shadow: 0 0 16px #ff3d8b33;
+}
+
+.opp-row.on .opp-icon {
+  background: #ff3d8b;
+  color: #021018;
+}
+
+.opp-chip.solo {
+  border-color: #2a3156;
+  background: var(--surface);
+}
+
+.opp-chip svg {
+  color: #ff5fa2;
 }

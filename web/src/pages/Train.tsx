@@ -2,26 +2,27 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { api, ApiError, wsUrl } from "../api/client";
 import type { CheckpointSummary, Job, Mode, Progress } from "../api/types";
 import { LineChart } from "../components/LineChart";
+import { OPPONENTS } from "../game/opponents";
 
 const MODES: { mode: Mode; name: string; desc: string; unit: "steps" | "episodes"; def: number }[] =
   [
     {
       mode: "A",
-      name: "A · 일반 딥러닝",
+      name: `${OPPONENTS.A.name} (모드 A)`,
       desc: "게임 화면을 MLP 정책망에 바로 넣고 SB3 PPO 로 학습합니다. 비교 기준선입니다.",
       unit: "steps",
       def: 300_000,
     },
     {
       mode: "B",
-      name: "B · 감각-행동 매핑",
+      name: `${OPPONENTS.B.name} (모드 B)`,
       desc: "커넥톰은 고정하고, 운동·하행 뉴런 활동 → 키 입력 리드아웃만 PPO 로 학습합니다.",
       unit: "steps",
       def: 1_000_000,
     },
     {
       mode: "C",
-      name: "C · 도파민 가소성",
+      name: `${OPPONENTS.C.name} (모드 C)`,
       desc: "보상을 도파민 뉴런 자극으로 주고, 3요소 규칙으로 KC→MBON 시냅스만 바꿉니다. 역전파 없음.",
       unit: "episodes",
       def: 64,
@@ -171,8 +172,8 @@ export default function Train() {
             {(["A", "B", "C"] as Mode[]).map((m) => (
               <div className="stat" key={m}>
                 <div className="k">
-                  <span className="swatch" style={{ background: `var(${MODE_COLOR[m]})` }} /> 모드{" "}
-                  {m}
+                  <span className="swatch" style={{ background: `var(${MODE_COLOR[m]})` }} />{" "}
+                  {OPPONENTS[m].name}
                 </div>
                 <div className="v">
                   {best[m]?.accuracy !== undefined && best[m]?.accuracy !== null
