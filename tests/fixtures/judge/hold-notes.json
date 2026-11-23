@@ -1,0 +1,129 @@
+{
+ "name": "hold-notes",
+ "chart": {
+  "id": "fixture",
+  "title": "fixture",
+  "bpm": 120.0,
+  "offsetMs": 0,
+  "lanes": 4,
+  "notes": [
+   {
+    "t": 1000,
+    "lane": 0,
+    "type": "hold",
+    "dur": 500
+   },
+   {
+    "t": 1000,
+    "lane": 1,
+    "type": "hold",
+    "dur": 500
+   },
+   {
+    "t": 1000,
+    "lane": 2,
+    "type": "hold",
+    "dur": 500
+   }
+  ]
+ },
+ "inputs": [
+  {
+   "t": 990,
+   "lane": 1,
+   "down": true
+  },
+  {
+   "t": 1000,
+   "lane": 2,
+   "down": true
+  },
+  {
+   "t": 1010,
+   "lane": 0,
+   "down": true
+  },
+  {
+   "t": 1200,
+   "lane": 2,
+   "down": false
+  },
+  {
+   "t": 1430,
+   "lane": 1,
+   "down": false
+  },
+  {
+   "t": 1600,
+   "lane": 0,
+   "down": false
+  }
+ ],
+ "expected": {
+  "events": [
+   {
+    "t": 990,
+    "lane": 1,
+    "note": 1,
+    "part": "head",
+    "judgment": "PERFECT",
+    "offset": -10
+   },
+   {
+    "t": 1000,
+    "lane": 2,
+    "note": 2,
+    "part": "head",
+    "judgment": "PERFECT",
+    "offset": 0
+   },
+   {
+    "t": 1010,
+    "lane": 0,
+    "note": 0,
+    "part": "head",
+    "judgment": "PERFECT",
+    "offset": 10
+   },
+   {
+    "t": 1200,
+    "lane": 2,
+    "note": 2,
+    "part": "tail",
+    "judgment": "MISS",
+    "offset": -300
+   },
+   {
+    "t": 1430,
+    "lane": 1,
+    "note": 1,
+    "part": "tail",
+    "judgment": "GREAT",
+    "offset": -70
+   },
+   {
+    "t": 1500,
+    "lane": 0,
+    "note": 0,
+    "part": "tail",
+    "judgment": "PERFECT",
+    "offset": 0
+   }
+  ],
+  "stats": {
+   "counts": {
+    "PERFECT": 4,
+    "GREAT": 1,
+    "GOOD": 0,
+    "MISS": 1
+   },
+   "empty": 0,
+   "combo": 2,
+   "maxCombo": 3,
+   "score": 4.7,
+   "judged": 6,
+   "total": 6,
+   "accuracy": 78.333333
+  }
+ }
+}

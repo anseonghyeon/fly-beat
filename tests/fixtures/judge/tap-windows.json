@@ -1,0 +1,174 @@
+{
+ "name": "tap-windows",
+ "chart": {
+  "id": "fixture",
+  "title": "fixture",
+  "bpm": 120.0,
+  "offsetMs": 0,
+  "lanes": 4,
+  "notes": [
+   {
+    "t": 1000,
+    "lane": 0,
+    "type": "tap"
+   },
+   {
+    "t": 1000,
+    "lane": 1,
+    "type": "tap"
+   },
+   {
+    "t": 1000,
+    "lane": 2,
+    "type": "tap"
+   },
+   {
+    "t": 1000,
+    "lane": 3,
+    "type": "tap"
+   },
+   {
+    "t": 2000,
+    "lane": 0,
+    "type": "tap"
+   }
+  ]
+ },
+ "inputs": [
+  {
+   "t": 940,
+   "lane": 1,
+   "down": true
+  },
+  {
+   "t": 990,
+   "lane": 1,
+   "down": false
+  },
+  {
+   "t": 1000,
+   "lane": 0,
+   "down": true
+  },
+  {
+   "t": 1050,
+   "lane": 0,
+   "down": false
+  },
+  {
+   "t": 1100,
+   "lane": 2,
+   "down": true
+  },
+  {
+   "t": 1121,
+   "lane": 3,
+   "down": true
+  },
+  {
+   "t": 1150,
+   "lane": 2,
+   "down": false
+  },
+  {
+   "t": 1150,
+   "lane": 3,
+   "down": false
+  },
+  {
+   "t": 1500,
+   "lane": 0,
+   "down": true
+  },
+  {
+   "t": 1550,
+   "lane": 0,
+   "down": false
+  },
+  {
+   "t": 1960,
+   "lane": 0,
+   "down": true
+  },
+  {
+   "t": 2000,
+   "lane": 0,
+   "down": false
+  }
+ ],
+ "expected": {
+  "events": [
+   {
+    "t": 940,
+    "lane": 1,
+    "note": 1,
+    "part": "head",
+    "judgment": "GREAT",
+    "offset": -60
+   },
+   {
+    "t": 1000,
+    "lane": 0,
+    "note": 0,
+    "part": "head",
+    "judgment": "PERFECT",
+    "offset": 0
+   },
+   {
+    "t": 1100,
+    "lane": 2,
+    "note": 2,
+    "part": "head",
+    "judgment": "GOOD",
+    "offset": 100
+   },
+   {
+    "t": 1120,
+    "lane": 3,
+    "note": 3,
+    "part": "head",
+    "judgment": "MISS",
+    "offset": 0
+   },
+   {
+    "t": 1121,
+    "lane": 3,
+    "note": -1,
+    "part": "empty",
+    "judgment": "EMPTY",
+    "offset": 0
+   },
+   {
+    "t": 1500,
+    "lane": 0,
+    "note": -1,
+    "part": "empty",
+    "judgment": "EMPTY",
+    "offset": 0
+   },
+   {
+    "t": 1960,
+    "lane": 0,
+    "note": 4,
+    "part": "head",
+    "judgment": "PERFECT",
+    "offset": -40
+   }
+  ],
+  "stats": {
+   "counts": {
+    "PERFECT": 2,
+    "GREAT": 1,
+    "GOOD": 1,
+    "MISS": 1
+   },
+   "empty": 2,
+   "combo": 1,
+   "maxCombo": 3,
+   "score": 3.0,
+   "judged": 5,
+   "total": 5,
+   "accuracy": 60.0
+  }
+ }
+}
