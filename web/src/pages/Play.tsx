@@ -80,7 +80,7 @@ export default function Play() {
 }
 
 function PlaySession({ settings }: { settings: PlaySettings }) {
-  const { chartId, ckptId, speed, sound } = settings;
+  const { chartId, ckptId, speed } = settings;
   const navigate = useNavigate();
   const [status, setStatus] = useState<Status>("idle");
   const [error, setError] = useState<string | null>(null);
@@ -154,7 +154,7 @@ function PlaySession({ settings }: { settings: PlaySettings }) {
     const audio = new SynthAudio();
     const ctx = await audio.start();
     let music: AudioBuffer | null = null;
-    if (sound && chart.audio) {
+    if (chart.audio) {
       music = await audio.load(chart.audio).catch(() => {
         setError("음원을 불러오지 못해 합성음으로 진행합니다");
         return null;
@@ -197,7 +197,7 @@ function PlaySession({ settings }: { settings: PlaySettings }) {
 
     // 공통 시계: 채보 시각 0 = zeroAt (서버는 ready 직후부터 실제 시간에 맞춰 프레임을 보낸다)
     const zeroAt = ctx.currentTime + LEAD_IN_S;
-    if (sound) await audio.playChart(chart, zeroAt, music);
+    await audio.playChart(chart, zeroAt, music);
     const songTime = () => (ctx.currentTime - zeroAt) * 1000;
 
     let lastHuman: LastJudgment | null = null;
@@ -227,7 +227,7 @@ function PlaySession({ settings }: { settings: PlaySettings }) {
       e.preventDefault();
       const t = Math.max(Math.round(songTime()), human.now);
       lastHuman = show(down ? human.press(lane, t) : human.release(lane, t), humanFx) ?? lastHuman;
-      if (down && sound) audio.hit();
+      if (down) audio.hit();
     };
     const kd = onKey(true);
     const ku = onKey(false);
@@ -359,7 +359,7 @@ function PlaySession({ settings }: { settings: PlaySettings }) {
     };
     setStatus("playing");
     raf = requestAnimationFrame(frame);
-  }, [chartId, ckptId, speed, sound, settings, navigate]);
+  }, [chartId, ckptId, speed, settings, navigate]);
 
   // 들어오자마자 바로 시작
   useEffect(() => {

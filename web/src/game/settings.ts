@@ -4,7 +4,6 @@ export interface PlaySettings {
   /** 빈 문자열 = 초파리 없이 혼자 */
   ckptId: string;
   speed: number;
-  sound: boolean;
 }
 
 const KEY = "flybeat.playSettings";
@@ -13,7 +12,6 @@ export const DEFAULT_SETTINGS: PlaySettings = {
   chartId: "tutorial-steps",
   ckptId: "",
   speed: 1.1,
-  sound: true,
 };
 
 export function loadSettings(): PlaySettings | null {
@@ -26,7 +24,6 @@ export function loadSettings(): PlaySettings | null {
       chartId: v.chartId,
       ckptId: v.ckptId,
       speed: typeof v.speed === "number" ? Math.min(2, Math.max(0.2, v.speed)) : 1.1,
-      sound: v.sound !== false,
     };
   } catch {
     return null;
