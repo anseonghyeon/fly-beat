@@ -22,8 +22,8 @@ def test_health(client):
 
 def test_charts_list_and_get(client):
     ids = {c["id"] for c in client.get("/api/charts").json()}
-    assert "easy-groove" in ids
-    chart = client.get("/api/charts/easy-groove").json()
+    assert "junkala-level-1-easy" in ids
+    chart = client.get("/api/charts/junkala-level-1-easy").json()
     assert chart["lanes"] == 4 and chart["notes"]
 
 
@@ -93,7 +93,7 @@ def test_train_job_then_watch(client, tmp_path, monkeypatch):
     assert ckpt in {c["id"] for c in client.get("/api/checkpoints").json()}
 
     with client.websocket_connect("/ws/play", headers=ORIGIN) as ws:
-        ws.send_json({"type": "start", "checkpoint": ckpt, "chart": "tutorial-steps"})
+        ws.send_json({"type": "start", "checkpoint": ckpt, "chart": "junkala-title-easy"})
         ready = ws.receive_json()
         assert ready["type"] == "ready" and ready["mode"] == "A"
         n_frames = 0
@@ -107,7 +107,7 @@ def test_train_job_then_watch(client, tmp_path, monkeypatch):
 
 def test_watch_errors(client):
     with client.websocket_connect("/ws/play", headers=ORIGIN) as ws:
-        ws.send_json({"type": "start", "checkpoint": "../etc", "chart": "tutorial-steps"})
+        ws.send_json({"type": "start", "checkpoint": "../etc", "chart": "junkala-title-easy"})
         assert ws.receive_json()["type"] == "error"
     with client.websocket_connect("/ws/play", headers=ORIGIN) as ws:
         ws.send_text("x" * 10000)

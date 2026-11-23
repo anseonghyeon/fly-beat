@@ -46,8 +46,8 @@ def test_chart_path_rejects_traversal(bad, tmp_path):
 
 def test_sample_charts_load():
     charts = list_charts()
-    assert {c.id for c in charts} >= {"tutorial-steps", "easy-groove", "normal-flight"}
-    assert load_chart("easy-groove").lanes == 4
+    assert {c.id for c in charts} >= {"junkala-title-easy", "junkala-level-1-normal"}
+    assert load_chart("junkala-level-1-easy").lanes == 4
 
 
 def test_generator_deterministic_and_valid():
@@ -111,7 +111,7 @@ def _oracle_action(env: RhythmEnv) -> np.ndarray:
 
 
 def test_env_oracle_scores_high_and_random_scores_low():
-    chart = load_chart("normal-flight")
+    chart = load_chart("junkala-level-1-normal")
     env = RhythmEnv(fixed_chart_source([chart]))
     env.reset(seed=0)
     done = False

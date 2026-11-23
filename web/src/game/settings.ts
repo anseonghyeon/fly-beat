@@ -9,7 +9,7 @@ export interface PlaySettings {
 const KEY = "flybeat.playSettings";
 
 export const DEFAULT_SETTINGS: PlaySettings = {
-  chartId: "tutorial-steps",
+  chartId: "junkala-title-easy",
   ckptId: "",
   speed: 1.1,
 };

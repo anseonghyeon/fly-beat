@@ -94,7 +94,7 @@ cd server
 ```
 fly-beat/
 ├── scripts/download_data.sh     데이터 다운로드 + 체크섬 검증
-├── charts/                      기본 채보 (음원 없이 WebAudio 로 박자 합성)
+├── charts/                      채보 + audio/ (CC0 칩튠 음원)
 ├── server/flybeat/
 │   ├── game/                    판정 엔진(기준 구현), 채보, 랜덤 채보 생성기, Gymnasium 환경
 │   ├── brain/                   커넥톰 전처리, rate 모델 시뮬레이터
@@ -139,4 +139,4 @@ cd web && npm run format:check && npm run lint && npm run typecheck && npm test 
 - 커넥톰 데이터: **MaleCNS v1.0**, Google Research · HHMI Janelia Research Campus. *Cell* (2026). https://male-cns.janelia.org/ · 라이선스 **CC-BY 4.0**
 - 이 저장소에는 원본 데이터가 들어 있지 않습니다. `scripts/download_data.sh`로 공식 주소에서 받습니다.
 - 코드 라이선스: 아직 정하지 않았습니다.
-- 기본 채보와 사운드는 이 프로젝트에서 직접 생성했습니다. 특정 상용 리듬게임의 곡·에셋·디자인은 쓰지 않았습니다.
+- 채보는 이 프로젝트의 생성기로 직접 만들었습니다. 특정 상용 리듬게임의 곡·에셋·디자인은 쓰지 않았습니다.
