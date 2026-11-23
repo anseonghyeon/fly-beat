@@ -1,8 +1,7 @@
-import { NavLink, Route, Routes } from "react-router-dom";
+import { Navigate, NavLink, Route, Routes } from "react-router-dom";
 import Brain from "./pages/Brain";
 import Play from "./pages/Play";
 import Train from "./pages/Train";
-import Watch from "./pages/Watch";
 
 function FlyIcon() {
   return (
@@ -24,7 +23,6 @@ function FlyIcon() {
 
 const NAV = [
   { to: "/", label: "Play" },
-  { to: "/watch", label: "Watch" },
   { to: "/train", label: "Train" },
   { to: "/brain", label: "Brain" },
 ];
@@ -47,7 +45,7 @@ export default function App() {
       <main>
         <Routes>
           <Route path="/" element={<Play />} />
-          <Route path="/watch" element={<Watch />} />
+          <Route path="/watch" element={<Navigate to="/" replace />} />
           <Route path="/train" element={<Train />} />
           <Route path="/brain" element={<Brain />} />
         </Routes>
