@@ -195,6 +195,10 @@ class MappingAgent:
         self.rng = np.random.default_rng(0)
         self.last_p = np.zeros(self.lanes, np.float32)
 
+    @property
+    def profile(self) -> str:
+        return self.cfg.profile
+
     def reset(self) -> None:
         # 정책은 확률적(학습한 그대로)이고, 곡마다 같은 시드로 시작해 결과를 재현할 수 있게 한다.
         self.sim.reset(1)
@@ -249,7 +253,17 @@ def brain_activity(sim: BrainSim) -> dict[str, Any]:
         "danReward": mean(g["dan_reward"]),
         "danPunish": mean(g["dan_punish"]),
         "activeFraction": float((r > 0.01).mean()),
+        "active": top_active(r),
     }
+
+
+def top_active(r: np.ndarray, k: int = 600, threshold: float = 0.01) -> list[list[int]]:
+    """가장 활발한 뉴런 최대 k 개: [[인덱스...], [세기 0~255...]] (뇌 지도 시각화용)."""
+    idx = np.flatnonzero(r > threshold)
+    if len(idx) > k:
+        idx = idx[np.argpartition(r[idx], len(idx) - k)[-k:]]
+    level = np.clip(np.round(r[idx] * 255), 1, 255).astype(int)
+    return [idx.tolist(), level.tolist()]
 
 
 def _es_search(

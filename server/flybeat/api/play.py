@@ -94,6 +94,7 @@ async def stream(ws, session: PlaySession) -> None:
         {
             "type": "ready",
             "mode": session.agent.mode,
+            "profile": getattr(session.agent, "profile", None),
             "chart": session.chart.to_dict(),
             "leadMs": LEAD_MS,
         }

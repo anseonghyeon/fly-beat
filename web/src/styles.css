@@ -483,3 +483,43 @@ tr.selected td {
   display: block;
   overflow-x: auto;
 }
+
+.panel-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.panel-head h2 {
+  margin: 0;
+}
+
+.seg {
+  display: inline-flex;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.seg button {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  padding: 4px 12px;
+  font-size: 0.85rem;
+}
+
+.seg button.on {
+  background: var(--surface-2);
+  font-weight: 600;
+}
+
+.fly-canvas {
+  display: block;
+  width: 100%;
+  height: 560px;
+  border-radius: var(--radius);
+  background: var(--stage-bg);
+}

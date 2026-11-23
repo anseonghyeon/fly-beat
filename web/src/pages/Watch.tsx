@@ -6,6 +6,7 @@ import { ChartPicker } from "../components/ChartPicker";
 import { StatsView } from "../components/StatsView";
 import { SynthAudio } from "../game/audio";
 import { JudgeEngine } from "../game/engine";
+import { FlyRenderer, REGION_COLORS, type Layout, type ViewName } from "../game/flyRenderer";
 import { canvasSize, drawFrame } from "../game/renderer";
 import type { ChartSummary, Judgment, Stats } from "../game/types";
 
@@ -27,6 +28,10 @@ export default function Watch() {
   const [activity, setActivity] = useState<Activity | null>(null);
   const [result, setResult] = useState<{ client: Stats; server: Stats } | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const flyCanvasRef = useRef<HTMLCanvasElement>(null);
+  const flyRef = useRef<FlyRenderer | null>(null);
+  const [layout, setLayout] = useState<Layout | null>(null);
+  const [view, setView] = useState<ViewName>("top");
   const stopRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
@@ -43,6 +48,23 @@ export default function Watch() {
       .catch(() => setError("체크포인트 목록을 불러오지 못했습니다"));
     return () => stopRef.current?.();
   }, []);
+
+  // 뉴런 배치 (세포체 좌표). 모드 A 도 몸·다리 표시를 위해 같은 배치를 쓴다.
+  useEffect(() => {
+    api
+      .get<Layout>("/api/brain/layout/compact")
+      .then((l) => {
+        setLayout(l);
+        flyRef.current = new FlyRenderer(l);
+      })
+      .catch(() => undefined);
+  }, []);
+
+  useEffect(() => {
+    if (flyRef.current) flyRef.current.view = view;
+    const c = flyCanvasRef.current;
+    if (c && flyRef.current) flyRef.current.draw(c, null, [false, false, false, false], 0);
+  }, [view, layout]);
 
   const start = useCallback(async () => {
     const canvas = canvasRef.current;
@@ -62,6 +84,8 @@ export default function Watch() {
     let last: { judgment: Judgment; at: number } | null = null;
     let serverStats: Stats | null = null;
     let closed = false;
+    let latest: Activity | null = null;
+    let lastPerf = performance.now();
 
     const stop = () => {
       if (closed) return;
@@ -88,8 +112,16 @@ export default function Watch() {
         const evs = engine.advance(f.t);
         const miss = evs.pop();
         if (miss) last = { judgment: miss.judgment, at: f.t };
-        if (f.activity) setActivity(f.activity);
+        if (f.activity) {
+          latest = f.activity;
+          setActivity(f.activity);
+        }
       }
+      const perf = performance.now();
+      const fly = flyRef.current;
+      const flyCanvas = flyCanvasRef.current;
+      if (fly && flyCanvas) fly.draw(flyCanvas, latest, engine.pressed, perf - lastPerf);
+      lastPerf = perf;
       drawFrame(canvas, engine, Math.max(now, engine.now), {
         speed: 0.6,
         keyLabels: ["D", "F", "J", "K"],
@@ -194,7 +226,40 @@ export default function Watch() {
           {error && <p className="error">{error}</p>}
         </section>
         <section className="panel">
-          <h2>뇌 활동</h2>
+          <div className="panel-head">
+            <h2>초파리 몸과 뇌</h2>
+            <div className="seg">
+              <button className={view === "top" ? "on" : ""} onClick={() => setView("top")}>
+                위에서
+              </button>
+              <button className={view === "side" ? "on" : ""} onClick={() => setView("side")}>
+                옆에서
+              </button>
+            </div>
+          </div>
+          {layout ? (
+            <>
+              <canvas ref={flyCanvasRef} className="fly-canvas" />
+              <div className="legend" style={{ marginTop: 8 }}>
+                {layout.regions.map((r) => (
+                  <span key={r.key}>
+                    <i style={{ background: REGION_COLORS[r.key] }} />
+                    {r.name}
+                  </span>
+                ))}
+              </div>
+              <p className="muted small">
+                점 하나가 뉴런 하나의 세포체 위치입니다 (MaleCNS 실측 좌표, 일부는 연결된 뉴런
+                위치로 추정). 밝게 빛나는 점이 지금 활동하는 뉴런이고, 키를 누르면 해당 다리가
+                뻗으며 노랗게 표시됩니다. 몸 윤곽은 뉴런 분포로 그린 도식입니다.
+              </p>
+            </>
+          ) : (
+            <p className="muted">뉴런 배치를 불러오는 중… (전처리가 필요할 수 있습니다)</p>
+          )}
+        </section>
+        <section className="panel">
+          <h2>뇌 활동 수치</h2>
           <BrainPanel mode={mode ?? selected?.mode ?? null} activity={activity} />
         </section>
         {result && (
