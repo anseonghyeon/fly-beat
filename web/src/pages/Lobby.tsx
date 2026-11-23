@@ -273,11 +273,6 @@ export default function Lobby() {
             ))}
           </select>
         </label>
-        <div className={`opp-chip ${opponent ? "" : "solo"}`} aria-live="polite">
-          <span className="opp-chip-label">상대</span>
-          <OpponentIcon kind={opponent ? OPPONENTS[opponent.mode].icon : "solo"} size={20} />
-          <b>{opponent ? OPPONENTS[opponent.mode].name : SOLO.name}</b>
-        </div>
       </header>
 
       <div className="lobby-body">
