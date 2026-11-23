@@ -467,9 +467,6 @@ export default function Lobby() {
           <kbd>Tab</kbd> 분류
         </span>
         <span>
-          <kbd>O</kbd> 상대
-        </span>
-        <span>
           <kbd>[</kbd>
           <kbd>]</kbd> 속도
         </span>
