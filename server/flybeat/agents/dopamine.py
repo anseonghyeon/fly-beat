@@ -48,6 +48,15 @@ class DopamineConfig:
     da_current: float = 1.0  # 보상 1 당 DAN 자극 전류
     baseline_decay: float = 0.01  # 기대 보상 이동 평균 속도
     w_max: float = 4.0  # 원래 시냅스 수 대비 최대 배율
+    # 다리 행동 방식
+    #  "strike": 쉬는 다리만 '지금 내리칠까'를 확률로 정하고, 내리치면 tap_ms 동안 눌렀다 뗀다.
+    #            누름 확률이 hold_p 보다 높으면 계속 누른다(롱노트). 내리친 뒤 refractory_ms 동안은
+    #            다시 내리칠 수 없다(불응기). 매 순간 주사위를 굴려 생기는 연타 깜빡임이 없다.
+    #  "tick"  : (예전 방식) 매 tick 누른 상태 자체를 확률로 정한다.
+    action_model: str = "strike"
+    tap_ms: float = 50.0
+    refractory_ms: float = 120.0  # 같은 레인 최소 노트 간격(120ms) 이하
+    hold_p: float = 0.3
     # 학습 신호용 보상 (평가 지표인 정확도에는 영향 없음). None 이면 게임 기본 보상.
     reward_miss: float | None = None
     # 헛누름 처벌. 게임 기본값(-0.1)이면 "자주 눌러서 걸리게 하기"가 이득이라 막 누르게 된다.
@@ -64,6 +73,44 @@ def assign_mbon_lanes(conn: Connectome, lanes: int) -> np.ndarray:
     lane = np.empty(len(mbon), dtype=np.int64)
     lane[order] = np.arange(len(mbon)) % lanes
     return lane
+
+
+class LegStriker:
+    """다리 동작 모델 (배치 B × 레인). DopamineConfig.action_model 참고."""
+
+    def __init__(self, cfg: DopamineConfig, batch: int, tick_ms: float) -> None:
+        self.strike = cfg.action_model == "strike"
+        self.tap_ticks = max(1, round(cfg.tap_ms / tick_ms))
+        # 내림: 불응기가 같은 레인 최소 노트 간격보다 길어지지 않게
+        self.refr_ticks = int(cfg.refractory_ms // tick_ms) if cfg.refractory_ms > 0 else 0
+        self.hold_p = cfg.hold_p
+        shape = (batch, cfg.lanes)
+        self.pressed = np.zeros(shape, dtype=bool)
+        self.held = np.zeros(shape, dtype=np.int64)
+        self.since = np.full(shape, 1 << 30, dtype=np.int64)
+
+    def reset(self, mask: np.ndarray | None = None) -> None:
+        rows = slice(None) if mask is None else mask
+        self.pressed[rows] = False
+        self.held[rows] = 0
+        self.since[rows] = 1 << 30
+
+    def step(self, p: np.ndarray, u: np.ndarray) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+        """p: 누름 확률, u: [0,1) 난수 (B, lanes).
+
+        반환: (누름 상태, 정책이 결정한 칸, 그 칸에서의 선택 0/1). 학습은 결정한 칸에만 적용한다.
+        """
+        if not self.strike:
+            choice = u < p
+            self.pressed = choice
+            return choice, np.ones_like(choice), choice
+        idle = ~self.pressed & (self.since + 1 >= self.refr_ticks)  # 지난 tick 수 = since + 1
+        onset = idle & (u < p)
+        keep = self.pressed & ((self.held < self.tap_ticks) | (p > self.hold_p))
+        self.pressed = onset | keep
+        self.held = np.where(onset, 1, np.where(keep, self.held + 1, 0))
+        self.since = np.where(onset, 0, self.since + 1)
+        return self.pressed, idle, onset
 
 
 class DopamineBrain:
@@ -197,16 +244,20 @@ class DopamineBrain:
         neg = np.minimum(delta, 0)[None, :] * self.ppl1_share[:, None]
         return (pos + neg).astype(np.float32)
 
-    def learn(self, action: np.ndarray, delta: np.ndarray) -> None:
+    def learn(self, action: np.ndarray, delta: np.ndarray, free: np.ndarray | None = None) -> None:
         """적격 흔적 갱신 + 도파민으로 가중치 업데이트 (배치 평균).
 
         e_ij += KC_i · (a_l − p_l) · ∂logit_l/∂(KC 입력) 이므로, 도파민이 보상 예측 오차일 때
         Δw = η · e · DA 는 정책 경사(REINFORCE)와 같다.
+        free: (B, lanes) 정책이 실제로 결정한 칸. 나머지(누르는 중·불응기)는 흔적에서 뺀다.
+        action 은 그 칸에서의 선택(내리침 1 / 안 함 0)이다.
         """
         cfg = self.cfg
         decay = np.float32(np.exp(-self.tick_ms / cfg.tau_elig_ms))
         kc_r = self.sim.r[self.kc]  # (n_kc, B)
         post_term = (action - self.last_p).T  # (lanes, B)
+        if free is not None:
+            post_term = post_term * free.T
         g = (cfg.readout_gain / self.sd)[:, None]  # ∂logit/∂z
         lane_n = np.maximum(np.bincount(self.mbon_lane, minlength=self.lanes), 1)[:, None]
         self.elig *= decay
@@ -241,6 +292,7 @@ class DopamineAgent:
         self.encoder = encoder
         self.lanes = brain.lanes
         self.rng = np.random.default_rng(0)
+        self.legs = LegStriker(brain.cfg, 1, brain.tick_ms)
 
     @property
     def profile(self) -> str:
@@ -249,10 +301,12 @@ class DopamineAgent:
     def reset(self) -> None:
         self.brain.reset()
         self.rng = np.random.default_rng(self.brain.cfg.seed)
+        self.legs.reset()
 
     def act(self, obs: np.ndarray) -> np.ndarray:
         p = self.brain.step(self.encoder.encode(obs), None)
-        return (self.rng.random(self.lanes) < p[0]).astype(np.int8)
+        pressed, _, _ = self.legs.step(p, self.rng.random((1, self.lanes)))
+        return pressed[0].astype(np.int8)
 
     def activity(self) -> dict[str, Any]:
         a = brain_activity(self.brain.sim)
@@ -271,7 +325,11 @@ class DopamineAgent:
         if meta["mode"] != "C":
             raise ValueError("모드 C 체크포인트가 아닙니다")
         known = {f.name for f in dataclasses.fields(DopamineConfig)}
-        cfg = DopamineConfig(**{k: v for k, v in meta["config"].items() if k in known})
+        saved = meta["config"]
+        cfg = DopamineConfig(**{k: v for k, v in saved.items() if k in known})
+        # 예전 체크포인트(다리 동작 모델 도입 전)는 학습 때와 같은 방식으로 재생한다
+        if "action_model" not in saved:
+            cfg.action_model = "tick"
         conn = Connectome.load(cfg.profile)
         if not (
             np.array_equal(conn.plastic_pre, tensors["plastic.pre"])
@@ -316,6 +374,7 @@ def train(
     obs = np.stack([e.reset(seed=cfg.seed + i)[0] for i, e in enumerate(envs)])
     seed = cfg.seed + cfg.n_envs
     brain.reset()
+    legs = LegStriker(cfg, cfg.n_envs, tick_ms)
 
     # 레인 입력 표준화: 누르지 않고 15초 동안 본 MBON 입력 분포
     calib_env = RhythmEnv(random_chart_source(gen), env_cfg, lanes=cfg.lanes)
@@ -338,11 +397,12 @@ def train(
 
     while episodes < cfg.episodes and not (should_stop and should_stop()):
         p = brain.step(encoder.encode(obs), brain.dan_current(delta))
-        action = (rng.random(p.shape) < p).astype(np.float32)
+        pressed, decided, choice = legs.step(p, rng.random(p.shape))
+        action = pressed.astype(np.int8)
         rewards = np.zeros(cfg.n_envs, np.float32)
         dones = np.zeros(cfg.n_envs, bool)
         for i, env in enumerate(envs):
-            o, r, done, _, info = env.step(action[i].astype(np.int8))
+            o, r, done, _, info = env.step(action[i])
             rewards[i], dones[i] = r, done
             ep_reward[i] += r
             if done:
@@ -356,9 +416,10 @@ def train(
         # 보상 예측 오차 → 다음 tick 의 DAN 자극, 동시에 현재 적격 흔적으로 학습
         delta = rewards - baseline
         baseline += cfg.baseline_decay * (float(rewards.mean()) - baseline)
-        brain.learn(action, delta)
+        brain.learn(choice.astype(np.float32), delta, decided)
         if dones.any():
             brain.reset(dones)
+            legs.reset(dones)
             delta[dones] = 0
         step += 1
         if progress and (time.time() - last_report > 1.0 or episodes >= cfg.episodes):
