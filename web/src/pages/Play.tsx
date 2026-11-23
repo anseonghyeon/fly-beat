@@ -16,7 +16,7 @@ import { JudgeEngine } from "../game/engine";
 import { LANE_KEY_CODES, LANE_KEY_LABELS, LANE_KEYS_TEXT } from "../game/keys";
 import { FlyRenderer, REGION_COLORS, type Layout, type ViewName } from "../game/flyRenderer";
 import { canvasSize, drawFrame, HitEffects, scoreOf, type LastJudgment } from "../game/renderer";
-import { loadSettings, type PlaySettings } from "../game/settings";
+import { loadSettings, saveRecord, type PlaySettings } from "../game/settings";
 import type { Chart, JudgeEvent, Stats } from "../game/types";
 import { VersusHud, type HudState } from "../components/VersusHud";
 
@@ -247,6 +247,13 @@ function PlaySession({ settings }: { settings: PlaySettings }) {
     const finish = () => {
       human.finish();
       fly?.finish();
+      if (human.stats.judged > 0)
+        saveRecord(chart.id, {
+          score: scoreOf(human),
+          rate: human.stats.accuracy,
+          maxCombo: human.stats.maxCombo,
+          fullCombo: human.stats.counts.MISS === 0,
+        });
       setResult({
         chartTitle: chart.title,
         artist: chart.artist,
