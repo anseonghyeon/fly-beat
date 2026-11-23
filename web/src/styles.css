@@ -12,6 +12,7 @@
   --ok: #2e7d32;
 
   --stage-bg: #16140f;
+  --stage-fg: #ece6d8;
   --stage-line: #2c2920;
   --note-tap: #f2c14e;
   --note-hold: #8a6d2bcc;
@@ -19,6 +20,17 @@
   --judge-great: #7bd88f;
   --judge-good: #6ab0ff;
   --judge-miss: #ff6b6b;
+
+  /* 모드 색: 검증된 범주형 팔레트 1~3번 슬롯 (3색 모든 쌍 CVD 검증 통과) */
+  --mode-a: #2a78d6;
+  --mode-b: #eb6834;
+  --mode-c: #1baf7a;
+  /* 순차(활동 세기): 한 색상 농도 */
+  --seq: #c27a00;
+  --seq-0: #ece7dc;
+  /* 발산(약화 ↔ 강화) */
+  --div-neg: #eb6834;
+  --div-pos: #2a78d6;
 
   --radius: 10px;
   --font: system-ui, -apple-system, "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
@@ -35,6 +47,13 @@
     --border: #353127;
     --accent: #f2a93b;
     --accent-fg: #1b1505;
+    --mode-a: #3987e5;
+    --mode-b: #d95926;
+    --mode-c: #199e70;
+    --seq: #f2a93b;
+    --seq-0: #26231c;
+    --div-neg: #d95926;
+    --div-pos: #3987e5;
   }
 }
 
@@ -282,4 +301,185 @@ code,
   main {
     padding: 16px;
   }
+}
+
+.small {
+  font-size: 0.8rem;
+}
+
+label.field.check {
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+  padding-bottom: 8px;
+}
+
+tr.selected td {
+  background: var(--surface-2);
+}
+
+.badge.stopped {
+  background: var(--fg-muted);
+  color: var(--surface);
+}
+
+.swatch {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  vertical-align: middle;
+}
+
+.mode-pick {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.mode-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+  cursor: pointer;
+}
+
+.mode-card input {
+  display: none;
+}
+
+.mode-card.on {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
+/* 차트 */
+.chart {
+  position: relative;
+  width: 100%;
+}
+
+.chart svg {
+  display: block;
+  overflow: visible;
+}
+
+.chart .grid {
+  stroke: var(--border);
+  stroke-width: 1;
+}
+
+.chart .tick,
+.chart .axis-label {
+  fill: var(--fg-muted);
+  font-size: 11px;
+}
+
+.chart .crosshair {
+  stroke: var(--fg-muted);
+  stroke-dasharray: 3 3;
+}
+
+.legend {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  font-size: 0.8rem;
+  color: var(--fg-muted);
+  margin-bottom: 6px;
+}
+
+.legend i,
+.tooltip i {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  margin-right: 6px;
+  vertical-align: -1px;
+}
+
+.tooltip {
+  position: absolute;
+  pointer-events: none;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 0.8rem;
+  box-shadow: 0 4px 16px rgb(0 0 0 / 0.12);
+  white-space: nowrap;
+}
+
+/* 뇌 활동 */
+.brain-panel {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.brain-panel h3 {
+  margin: 0 0 6px;
+  font-size: 0.9rem;
+}
+
+.heat-grid {
+  display: flex;
+  gap: 6px;
+}
+
+.heat-col {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  align-items: center;
+}
+
+.heat {
+  width: 34px;
+  height: 22px;
+  border-radius: 4px;
+}
+
+.hbar {
+  display: grid;
+  grid-template-columns: 110px 1fr 48px;
+  gap: 8px;
+  align-items: center;
+  font-size: 0.8rem;
+  margin-bottom: 4px;
+}
+
+.hbar-label {
+  color: var(--fg-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hbar-track {
+  height: 8px;
+  background: var(--seq-0);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.hbar-fill {
+  display: block;
+  height: 100%;
+  background: var(--seq);
+  border-radius: 4px;
+}
+
+.hbar-value {
+  text-align: right;
+}
+
+.panel table {
+  display: block;
+  overflow-x: auto;
 }
