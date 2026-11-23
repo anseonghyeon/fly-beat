@@ -79,3 +79,23 @@ export function saveRecord(chartId: string, rec: BestRecord): boolean {
   }
   return true;
 }
+
+/** 방금 끝난 대결 결과 (새로고침해도 결과 페이지를 다시 볼 수 있도록 탭 저장소에 둔다) */
+const RESULT_KEY = "flybeat.lastResult";
+
+export function saveLastResult(v: unknown): void {
+  try {
+    sessionStorage.setItem(RESULT_KEY, JSON.stringify(v));
+  } catch {
+    /* 저장 불가 — 무시 */
+  }
+}
+
+export function loadLastResult<T>(): T | null {
+  try {
+    const raw = sessionStorage.getItem(RESULT_KEY);
+    return raw ? (JSON.parse(raw) as T) : null;
+  } catch {
+    return null;
+  }
+}

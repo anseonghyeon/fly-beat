@@ -10,14 +10,14 @@ import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import { api, wsUrl } from "../api/client";
 import type { Activity, Frame, Mode, PlayMessage } from "../api/types";
 import { BrainPanel } from "../components/BrainPanel";
-import { ResultModal, type MatchResult } from "../components/ResultModal";
+import type { MatchResult } from "../components/ResultView";
 import { SynthAudio } from "../game/audio";
 import { JudgeEngine } from "../game/engine";
 import { LANE_KEY_CODES, LANE_KEY_LABELS, LANE_KEYS_TEXT } from "../game/keys";
 import { OPPONENTS, SOLO } from "../game/opponents";
 import { FlyRenderer, REGION_COLORS, type Layout, type ViewName } from "../game/flyRenderer";
 import { canvasSize, drawFrame, HitEffects, scoreOf, type LastJudgment } from "../game/renderer";
-import { loadSettings, saveRecord, type PlaySettings } from "../game/settings";
+import { loadSettings, saveLastResult, saveRecord, type PlaySettings } from "../game/settings";
 import type { Chart, JudgeEvent, Stats } from "../game/types";
 import { VersusHud, type HudState } from "../components/VersusHud";
 
@@ -31,7 +31,9 @@ const MODE_NAME: Record<Mode, string> = {
   C: OPPONENTS.C.name,
 };
 
-type Status = "idle" | "loading" | "playing";
+type Status = "idle" | "loading" | "playing" | "finished";
+/** 곡이 끝난 뒤 결과 페이지로 넘어가기까지 기다리는 시간 */
+const RESULT_DELAY_MS = 3000;
 
 /** WebSocket 으로 초파리 세션을 열고 ready 메시지를 기다린다. */
 function openFly(
@@ -84,7 +86,7 @@ function PlaySession({ settings }: { settings: PlaySettings }) {
   const [error, setError] = useState<string | null>(null);
   const [flyMode, setFlyMode] = useState<Mode | null>(null);
   const [activity, setActivity] = useState<Activity | null>(null);
-  const [result, setResult] = useState<MatchResult | null>(null);
+  const resultTimer = useRef<number | null>(null);
   const [hud, setHud] = useState<HudState | null>(null);
   const [layout, setLayout] = useState<Layout | null>(null);
   const [view, setView] = useState<ViewName>("top");
@@ -119,6 +121,8 @@ function PlaySession({ settings }: { settings: PlaySettings }) {
   const stop = useCallback(() => {
     sessionRef.current++;
     stopRef.current?.();
+    if (resultTimer.current !== null) window.clearTimeout(resultTimer.current);
+    resultTimer.current = null;
     setStatus("idle");
   }, []);
 
@@ -128,7 +132,6 @@ function PlaySession({ settings }: { settings: PlaySettings }) {
     const session = sessionRef.current;
     const alive = () => sessionRef.current === session;
     setError(null);
-    setResult(null);
     setActivity(null);
     setStatus("loading");
 
@@ -255,7 +258,7 @@ function PlaySession({ settings }: { settings: PlaySettings }) {
           maxCombo: human.stats.maxCombo,
           fullCombo: human.stats.counts.MISS === 0,
         });
-      setResult({
+      const result: MatchResult = {
         chartTitle: chart.title,
         artist: chart.artist,
         bpm: chart.bpm,
@@ -264,8 +267,16 @@ function PlaySession({ settings }: { settings: PlaySettings }) {
           fly && mode
             ? { name: MODE_NAME[mode], client: { ...fly.stats }, server: flyServerStats }
             : null,
-      });
+      };
+      const state = { result, settings };
+      saveLastResult(state);
       cleanup();
+      // 곡이 끝나면 잠깐 FINISH 를 보여 주고 결과 페이지로
+      setStatus("finished");
+      resultTimer.current = window.setTimeout(() => {
+        resultTimer.current = null;
+        navigate("/result", { state });
+      }, RESULT_DELAY_MS);
     };
 
     const frame = () => {
@@ -348,7 +359,7 @@ function PlaySession({ settings }: { settings: PlaySettings }) {
     };
     setStatus("playing");
     raf = requestAnimationFrame(frame);
-  }, [chartId, ckptId, speed, sound]);
+  }, [chartId, ckptId, speed, sound, settings, navigate]);
 
   // 들어오자마자 바로 시작
   useEffect(() => {
@@ -390,6 +401,11 @@ function PlaySession({ settings }: { settings: PlaySettings }) {
               <p className="loading-text">
                 준비 중… {ckptId ? "초파리 뇌 모델을 불러오고 있습니다" : ""}
               </p>
+            ) : status === "finished" ? (
+              <div className="finish-banner" role="status">
+                <b>FINISH</b>
+                <span>잠시 후 결과 화면으로 이동합니다</span>
+              </div>
             ) : (
               <div className="play-actions">
                 <span className="muted">대결이 끝났습니다</span>
@@ -451,18 +467,6 @@ function PlaySession({ settings }: { settings: PlaySettings }) {
           <canvas ref={flyCanvas} width={width} height={height} />
         </div>
       </section>
-
-      {result && (
-        <ResultModal
-          result={result}
-          onClose={() => setResult(null)}
-          onRetry={() => {
-            setResult(null);
-            void start();
-          }}
-          onLobby={toLobby}
-        />
-      )}
     </div>
   );
 }
