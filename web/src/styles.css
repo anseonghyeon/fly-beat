@@ -1710,8 +1710,8 @@ kbd {
 }
 
 /* 대결 상대 고르기 */
-.opt-tiles.two {
-  grid-template-columns: repeat(2, 1fr);
+.opt-tiles.one {
+  grid-template-columns: 1fr;
 }
 
 .opp-list {

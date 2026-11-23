@@ -339,21 +339,13 @@ export default function Lobby() {
           )}
 
           <div className="opt-title">옵션</div>
-          <div className="opt-tiles two">
+          <div className="opt-tiles one">
             <button
               className="tile speed"
               onClick={() => changeSpeed(settings.speed >= 1.5 ? -1.2 : 0.1)}
             >
               <span className="tile-k">SPEED</span>
               <b>{settings.speed.toFixed(1)}</b>
-            </button>
-            <button
-              className={`tile ${settings.sound ? "on" : ""}`}
-              onClick={() => set({ sound: !settings.sound })}
-              aria-pressed={settings.sound}
-            >
-              <span className="tile-k">SOUND</span>
-              <b>{settings.sound ? "ON" : "OFF"}</b>
             </button>
           </div>
 
