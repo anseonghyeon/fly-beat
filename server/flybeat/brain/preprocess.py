@@ -288,6 +288,11 @@ def preprocess(profile: str, out_root: Path | None = None) -> Path:
     }
     (out / "meta.json").write_text(json.dumps(meta, indent=2, ensure_ascii=False), "utf-8")
     log(f"저장: {out} ({meta['seconds']}s)")
+    if out_root is None:
+        from flybeat.brain.layout import load_layout
+
+        load_layout(profile)
+        log("시각화 레이아웃 저장: layout.json")
     return out
 
 

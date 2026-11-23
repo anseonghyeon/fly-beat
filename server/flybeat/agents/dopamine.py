@@ -241,6 +241,10 @@ class DopamineAgent:
         self.lanes = brain.lanes
         self.rng = np.random.default_rng(0)
 
+    @property
+    def profile(self) -> str:
+        return self.brain.cfg.profile
+
     def reset(self) -> None:
         self.brain.reset()
         self.rng = np.random.default_rng(self.brain.cfg.seed)

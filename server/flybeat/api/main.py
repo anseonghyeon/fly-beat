@@ -173,6 +173,15 @@ def create_app(cfg: Settings = settings) -> FastAPI:
     def brain() -> dict:
         return brain_info.connectome_summary()
 
+    @app.get("/api/brain/layout/{profile}")
+    def layout(profile: str) -> dict:
+        if profile not in ("compact", "medium", "full"):
+            raise HTTPException(404, "알 수 없는 프로필")
+        try:
+            return brain_info.layout(profile)
+        except FileNotFoundError:
+            raise HTTPException(404, "전처리 결과가 없습니다") from None
+
     @app.get("/api/brain/plasticity/{ckpt_id}")
     def plasticity(ckpt_id: str) -> dict:
         try:

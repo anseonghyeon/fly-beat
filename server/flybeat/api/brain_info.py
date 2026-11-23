@@ -13,6 +13,13 @@ from flybeat import paths
 from flybeat.agents.checkpoint import load_checkpoint
 
 
+@cache
+def layout(profile: str) -> dict[str, Any]:
+    from flybeat.brain.layout import load_layout
+
+    return load_layout(profile)
+
+
 def connectome_summary(profile: str = "compact") -> dict[str, Any]:
     p = paths.PROCESSED_DIR / profile / "meta.json"
     if not p.is_file():
