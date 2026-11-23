@@ -64,7 +64,7 @@ export function drawFrame(
   const tapColor = cssVar("--note-tap");
   const holdColor = cssVar("--note-hold");
   const accent = cssVar("--accent");
-  const fg = cssVar("--fg");
+  const fg = cssVar("--stage-fg");
 
   ctx.fillStyle = bg;
   ctx.fillRect(0, 0, width, height);

@@ -22,6 +22,8 @@ class Settings:
     max_train_jobs: int = int(os.environ.get("FLYBEAT_MAX_TRAIN_JOBS", "1"))
     max_play_sessions: int = int(os.environ.get("FLYBEAT_MAX_PLAY_SESSIONS", "4"))
     max_ws_message_bytes: int = 4096
+    # 127.0.0.1/localhost 외에 허용할 Host (외부 바인딩 시). 쉼표 구분.
+    extra_hosts: list[str] = field(default_factory=lambda: _csv("FLYBEAT_ALLOWED_HOSTS", ""))
 
 
 settings = Settings()
