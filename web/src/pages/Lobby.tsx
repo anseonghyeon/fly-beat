@@ -355,7 +355,6 @@ export default function Lobby() {
             >
               <span className="tile-k">SPEED</span>
               <b>{settings.speed.toFixed(1)}</b>
-              <kbd>[ ]</kbd>
             </button>
             <button
               className={`tile ${settings.sound ? "on" : ""}`}
@@ -368,7 +367,6 @@ export default function Lobby() {
             <button className="tile opp" onClick={cycleOpponent}>
               <span className="tile-k">상대</span>
               <b>{opponent ? opponent.mode : "SOLO"}</b>
-              <kbd>O</kbd>
             </button>
           </div>
           <p className="muted small opp-desc">
