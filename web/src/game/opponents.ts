@@ -16,21 +16,21 @@ export interface OpponentInfo {
 
 export const OPPONENTS: Record<Mode, OpponentInfo> = {
   A: {
-    name: "AI 로봇",
+    name: "MACHINE",
     desc: "초파리가 아닌 일반 AI. 비교용이라 제일 잘 쳐요",
     tech: "모드 A · MLP + PPO",
     icon: "robot",
     isFly: false,
   },
   B: {
-    name: "본능 초파리",
+    name: "WILD FLY",
     desc: "타고난 뇌 배선 그대로 노트에 반응해요",
     tech: "모드 B · 커넥톰 고정 + 해석기 학습",
     icon: "fly",
     isFly: true,
   },
   C: {
-    name: "학습 초파리",
+    name: "ROOKIE FLY",
     desc: "칭찬(도파민)을 받으며 뇌가 스스로 배웠어요",
     tech: "모드 C · 도파민 3요소 학습",
     icon: "fly",

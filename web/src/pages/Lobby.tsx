@@ -28,7 +28,7 @@ const DIFF_RE = /\((EASY|NORMAL|HARD)\)\s*$/;
 const DIFFS = ["EASY", "NORMAL", "HARD"] as const;
 type Diff = (typeof DIFFS)[number] | "—";
 
-/** 상대 목록 순서: 혼자 → 초파리(학습·본능) → AI 로봇 */
+/** 상대 목록 순서: ROOKIE FLY(C) → WILD FLY(B) → MACHINE(A) */
 const OPP_ORDER: Record<Mode, number> = { C: 1, B: 2, A: 3 };
 
 type SortKey = "title" | "bpm" | "notes";
@@ -94,6 +94,7 @@ export default function Lobby() {
   const navigate = useNavigate();
   const [charts, setCharts] = useState<ChartSummary[]>([]);
   const [ckpts, setCkpts] = useState<CheckpointSummary[]>([]);
+  const [ckptsLoaded, setCkptsLoaded] = useState(false);
   const [settings, setSettings] = useState<PlaySettings>(() => loadSettings() ?? DEFAULT_SETTINGS);
   const [records] = useState(loadRecords);
   const [category, setCategory] = useState("전체");
@@ -110,14 +111,15 @@ export default function Lobby() {
       .get<CheckpointSummary[]>("/api/checkpoints")
       .then((cs) => {
         setCkpts([...cs].sort((a, b) => OPP_ORDER[a.mode] - OPP_ORDER[b.mode]));
-        // 처음이거나 저장된 상대가 사라졌으면 본능 초파리(B), 없으면 첫 번째 상대
+        // 처음이거나 저장된 상대가 사라졌으면 WILD FLY(B), 없으면 첫 번째 상대
         setSettings((s) =>
           cs.some((c) => c.id === s.ckptId)
             ? s
             : { ...s, ckptId: (cs.find((c) => c.mode === "B") ?? cs[0])?.id ?? "" },
         );
       })
-      .catch(() => undefined);
+      .catch(() => undefined)
+      .finally(() => setCkptsLoaded(true));
   }, []);
 
   const songs = useMemo(() => groupSongs(charts), [charts]);
@@ -385,7 +387,7 @@ export default function Lobby() {
               );
             })}
           </div>
-          {ckpts.length === 0 && (
+          {ckptsLoaded && ckpts.length === 0 && (
             <p className="muted small">
               대결할 상대가 없어요. Esc 메뉴의 학습에서 상대를 먼저 학습시켜 주세요.
             </p>
