@@ -1410,28 +1410,6 @@ kbd {
   padding: 0;
 }
 
-.opp-chip {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 14px;
-  border-radius: 10px;
-  border: 1px solid #ff3d8b;
-  background: linear-gradient(90deg, #ff3d8b22, #2fd3ff11);
-}
-
-.opp-chip-label {
-  font-size: 0.7rem;
-  letter-spacing: 0.1em;
-  color: var(--fg-muted);
-}
-
-.opp-chip-acc {
-  font-weight: 800;
-  color: #ff5fa2;
-  font-variant-numeric: tabular-nums;
-}
-
 .lobby-body {
   flex: 1;
   min-height: 0;
@@ -1950,13 +1928,4 @@ kbd {
 .opp-row.on .opp-icon {
   background: #ff3d8b;
   color: #021018;
-}
-
-.opp-chip.solo {
-  border-color: #2a3156;
-  background: var(--surface);
-}
-
-.opp-chip svg {
-  color: #ff5fa2;
 }
