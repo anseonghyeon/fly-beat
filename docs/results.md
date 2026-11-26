@@ -18,7 +18,7 @@
 ## 모드 A: MLP + SB3 PPO
 
 ```bash
-python -m flybeat.train --mode A --steps 300000
+python -m flymax.train --mode A --steps 300000
 ```
 
 - 정책망: MLP [128, 128], ReLU, 관측은 노트 격자 + 다음 노트까지 남은 시간
@@ -28,7 +28,7 @@ python -m flybeat.train --mode A --steps 300000
 ## 모드 B: 커넥톰 고정 + 감각·행동 매핑
 
 ```bash
-python -m flybeat.train --mode B --steps 1000000
+python -m flymax.train --mode B --steps 1000000
 ```
 
 - 게임 화면 → 시각 입력 뉴런(L1/L2, 레인 × 세로 4칸) → **고정된 커넥톰**(rate 모델) → 다리 운동 뉴런 197개 + 하행 뉴런 292개 → 선형 리드아웃(PPO)
@@ -46,7 +46,7 @@ python -m flybeat.train --mode B --steps 1000000
 ## 모드 C: 도파민 3요소 학습
 
 ```bash
-python -m flybeat.train --mode C --episodes 96
+python -m flymax.train --mode C --episodes 96
 ```
 
 - 보상 예측 오차 → PAM(보상)·PPL1(처벌) 도파민 뉴런 자극 → DAN→MBON 구획을 따라 도파민 신호 전달 → `Δw = η · 적격흔적 · 도파민`

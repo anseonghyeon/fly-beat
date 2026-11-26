@@ -4,10 +4,10 @@
 
 ```bash
 cd server
-.venv/bin/python -m flybeat.brain.preprocess --profile compact   # 약 6초, 최대 메모리 약 4.3GB
+.venv/bin/python -m flymax.brain.preprocess --profile compact   # 약 6초, 최대 메모리 약 4.3GB
 ```
 
-설정은 `server/flybeat/config/brain.yaml`에 있다.
+설정은 `server/flymax/config/brain.yaml`에 있다.
 
 | 프로필 | 경로 길이 H | 최소 시냅스 | 입력 상한/뉴런 | 뉴런 | 연결(nnz) | 배치 1 속도 | 배치 16~32 속도 |
 |---|---|---|---|---|---|---|---|
@@ -34,7 +34,7 @@ cd server
 
 ## 3. 파라미터 탐색 결과 (compact)
 
-`python -m flybeat.brain.bench`로 다시 확인할 수 있다.
+`python -m flymax.brain.bench`로 다시 확인할 수 있다.
 
 | α | gain | bias | 결과 |
 |---|---|---|---|

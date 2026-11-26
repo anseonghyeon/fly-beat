@@ -1088,6 +1088,7 @@ tr.selected td {
   letter-spacing: 0.06em;
   font-size: 2rem;
   line-height: 1;
+  white-space: nowrap;
 }
 
 .logo-word .fly {
@@ -1107,7 +1108,7 @@ tr.selected td {
 }
 
 .logo.big .logo-word {
-  font-size: clamp(3rem, 9vw, 6rem);
+  font-size: clamp(1.8rem, 6vw, 4.5rem);
 }
 
 /* 시작 효과 */

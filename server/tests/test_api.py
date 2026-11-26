@@ -3,9 +3,9 @@ import time
 import pytest
 from fastapi.testclient import TestClient
 
-from flybeat import paths
-from flybeat.api import play
-from flybeat.api.main import create_app
+from flymax import paths
+from flymax.api import play
+from flymax.api.main import create_app
 
 ORIGIN = {"origin": "http://localhost:5173"}
 
@@ -72,7 +72,7 @@ def test_unknown_ids_404(client):
 
 
 def test_train_job_then_watch(client, tmp_path, monkeypatch):
-    monkeypatch.setenv("FLYBEAT_CHECKPOINTS_DIR", str(tmp_path))
+    monkeypatch.setenv("FLYMAX_CHECKPOINTS_DIR", str(tmp_path))
     monkeypatch.setattr(paths, "CHECKPOINTS_DIR", tmp_path)
     monkeypatch.setattr(play, "LEAD_MS", 10**9)  # 테스트에서는 실시간으로 기다리지 않음
 
@@ -115,7 +115,7 @@ def test_watch_errors(client):
 
 
 def test_plasticity_endpoint(synthetic_data, client):
-    from flybeat.agents.dopamine import DopamineConfig, train
+    from flymax.agents.dopamine import DopamineConfig, train
 
     cid = train(DopamineConfig(profile=synthetic_data, episodes=1, n_envs=2, lr=1.0))
     p = client.get(f"/api/brain/plasticity/{cid}").json()

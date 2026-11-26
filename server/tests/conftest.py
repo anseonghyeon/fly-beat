@@ -5,8 +5,8 @@ import pandas as pd
 import pytest
 import scipy.sparse as sp
 
-from flybeat import paths
-from flybeat.brain.model import Connectome
+from flymax import paths
+from flymax.brain.model import Connectome
 
 
 def synthetic_connectome(seed: int = 0) -> Connectome:

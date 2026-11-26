@@ -1,11 +1,11 @@
 import pytest
 
-from flybeat.agents import checkpoint as ck
-from flybeat.agents.base import eval_charts, evaluate
+from flymax.agents import checkpoint as ck
+from flymax.agents.base import eval_charts, evaluate
 
 
 def test_mode_b_train_save_load(synthetic_data):
-    from flybeat.agents.mapping import MappingAgent, MappingConfig, train
+    from flymax.agents.mapping import MappingAgent, MappingConfig, train
 
     cfg = MappingConfig(
         profile=synthetic_data, total_steps=512, n_envs=2, n_steps=128, batch_size=128

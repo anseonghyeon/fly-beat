@@ -2,9 +2,9 @@ import numpy as np
 import pytest
 import soundfile as sf
 
-from flybeat.game.autochart import analyze, encode_ogg, load_mono
-from flybeat.game.chart import ChartError, audio_path
-from flybeat.game.charter import DIFFICULTIES, chart_quality, make_chart
+from flymax.game.autochart import analyze, encode_ogg, load_mono
+from flymax.game.chart import ChartError, audio_path
+from flymax.game.charter import DIFFICULTIES, chart_quality, make_chart
 
 
 def click_track(path, bpm=128.0, seconds=30.0, sr=22050, offset=0.35):

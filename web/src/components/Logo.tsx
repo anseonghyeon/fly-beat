@@ -16,7 +16,7 @@ export function FlyIcon({ size = 22 }: { size?: number }) {
   );
 }
 
-/** 네온 로고: 초파리 아이콘 + FLY BEAT */
+/** 네온 로고: 초파리 아이콘 + FLYMAX RESPECT V */
 export function Logo({ big = false }: { big?: boolean }) {
   return (
     <div className={`logo ${big ? "big" : ""}`}>
@@ -24,8 +24,8 @@ export function Logo({ big = false }: { big?: boolean }) {
         <FlyIcon size={big ? 96 : 40} />
       </span>
       <span className="logo-word">
-        <span className="fly">FLY</span>
-        <span className="beat">BEAT</span>
+        <span className="fly">FLYMAX</span>
+        <span className="beat">RESPECT V</span>
       </span>
     </div>
   );
