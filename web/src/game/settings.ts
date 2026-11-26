@@ -6,7 +6,7 @@ export interface PlaySettings {
   speed: number;
 }
 
-const KEY = "flybeat.playSettings";
+const KEY = "flymax.playSettings";
 
 export const DEFAULT_SETTINGS: PlaySettings = {
   chartId: "junkala-title-easy",
@@ -46,7 +46,7 @@ export interface BestRecord {
   fullCombo: boolean;
 }
 
-const RECORDS_KEY = "flybeat.records";
+const RECORDS_KEY = "flymax.records";
 
 export function loadRecords(): Record<string, BestRecord> {
   try {
@@ -78,7 +78,7 @@ export function saveRecord(chartId: string, rec: BestRecord): boolean {
 }
 
 /** 방금 끝난 대결 결과 (새로고침해도 결과 페이지를 다시 볼 수 있도록 탭 저장소에 둔다) */
-const RESULT_KEY = "flybeat.lastResult";
+const RESULT_KEY = "flymax.lastResult";
 
 export function saveLastResult(v: unknown): void {
   try {

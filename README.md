@@ -1,8 +1,10 @@
-# fly-beat
+# flymax-respect-v
+
+> 이 프로젝트는 DJMAX RESPECT V를 오마주했습니다.
 
 **HUMAN VS FLY**: 진짜 초파리 뇌와 리듬게임으로 대결해요.
 
-![fly-beat 플레이 화면: 왼쪽은 사람, 오른쪽은 WILD FLY가 Level 2 HARD를 치는 모습. 가운데에 점수 차와 초파리 뇌·다리 활동이 실시간으로 보인다](docs/images/play.gif)
+![flymax-respect-v 플레이 화면: 왼쪽은 사람, 오른쪽은 WILD FLY가 Level 2 HARD를 치는 모습. 가운데에 점수 차와 초파리 뇌·다리 활동이 실시간으로 보인다](docs/images/play.gif)
 
 *Level 2 (HARD)에서 WILD FLY와 대결하는 모습. 가운데에서 초파리 뇌의 활동과 누르는 다리가 실시간으로 빛나요.*
 
@@ -24,7 +26,7 @@
 
 ## 화면 구성
 
-- **시작 화면**: FLY BEAT 로고가 떴다가 사라지고 로비가 나와요.
+- **시작 화면**: FLYMAX RESPECT V 로고가 떴다가 사라지고 로비가 나와요.
 - **로비**: 곡 선택 화면이에요.
   - 왼쪽: 선택한 곡의 카드(자동 생성 커버, BPM, 난이도, 내 최고 기록), 노트 속도, 대결 상대, START 버튼
   - 오른쪽: 곡 목록(난이도별 내 등급)
@@ -59,8 +61,8 @@
 ### 1. 데이터 받기와 서버 설치
 
 ```bash
-git clone https://github.com/anseonghyeon/fly-beat.git
-cd fly-beat
+git clone https://github.com/anseonghyeon/flymax-respect-v.git
+cd flymax-respect-v
 
 # 커넥톰 데이터 다운로드 (약 1.1GB, SHA-256 검증)
 ./scripts/download_data.sh
@@ -69,7 +71,7 @@ cd fly-beat
 cd server
 python3 -m venv .venv
 .venv/bin/pip install -r requirements.lock -e ".[dev]"
-.venv/bin/python -m flybeat.brain.preprocess --profile compact
+.venv/bin/python -m flymax.brain.preprocess --profile compact
 ```
 
 ### 2. 대결 상대 학습
@@ -78,9 +80,9 @@ python3 -m venv .venv
 
 ```bash
 # server 폴더에서 (시간은 Apple M4 CPU 기준)
-.venv/bin/python -m flybeat.train --mode A --steps 300000     # MACHINE, 약 15초
-.venv/bin/python -m flybeat.train --mode B --steps 1000000    # WILD FLY, 약 15분
-.venv/bin/python -m flybeat.train --mode C --episodes 96      # ROOKIE FLY, 약 9분
+.venv/bin/python -m flymax.train --mode A --steps 300000     # MACHINE, 약 15초
+.venv/bin/python -m flymax.train --mode B --steps 1000000    # WILD FLY, 약 15분
+.venv/bin/python -m flymax.train --mode C --episodes 96      # ROOKIE FLY, 약 9분
 ```
 
 서버를 켠 뒤 웹 화면의 Esc 메뉴 → 학습에서 시작해도 돼요. 학습 결과는 `checkpoints/<id>/`에 `model.safetensors`와 `meta.json`으로 저장돼요.
@@ -90,7 +92,7 @@ python3 -m venv .venv
 ```bash
 # 터미널 1: API 서버 (127.0.0.1:8000)
 cd server
-.venv/bin/python -m flybeat.api
+.venv/bin/python -m flymax.api
 
 # 터미널 2: 웹 화면
 cd web
@@ -116,7 +118,7 @@ npm run dev        # http://127.0.0.1:5173 접속
 
 ```bash
 cd server
-.venv/bin/python -m flybeat.game.autochart my-song.wav --id my-song --title "My Song" \
+.venv/bin/python -m flymax.game.autochart my-song.wav --id my-song --title "My Song" \
     --artist "작곡가" --audio-out ../charts/audio/my-song.ogg
 ```
 
@@ -136,10 +138,10 @@ cd server
 ## 프로젝트 구조
 
 ```
-fly-beat/
+flymax-respect-v/
 ├── scripts/download_data.sh     데이터 다운로드 + 체크섬 검증
 ├── charts/                      채보(JSON) + audio/(CC0 음원)
-├── server/flybeat/
+├── server/flymax/
 │   ├── game/                    판정 엔진(기준 구현), 채보, 채보 생성기(autochart·charter), Gymnasium 환경
 │   ├── brain/                   커넥톰 전처리, 레이트 모델 시뮬레이터
 │   ├── agents/                  모드 A(deep_rl) · B(mapping) · C(dopamine), 체크포인트
@@ -164,7 +166,7 @@ cd server && .venv/bin/ruff format --check . && .venv/bin/ruff check . && .venv/
 cd web && npm run format:check && npm run lint && npm run typecheck && npm test && npm run build
 ```
 
-판정 규칙을 바꿀 때는 `server/flybeat/game/engine.py`와 `web/src/game/engine.ts`를 함께 고쳐요. 그다음 `python -m flybeat.game.fixtures`로 골든 테스트를 다시 만들어요.
+판정 규칙을 바꿀 때는 `server/flymax/game/engine.py`와 `web/src/game/engine.ts`를 함께 고쳐요. 그다음 `python -m flymax.game.fixtures`로 골든 테스트를 다시 만들어요.
 
 ## 보안
 

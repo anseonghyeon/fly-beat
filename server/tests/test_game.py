@@ -4,11 +4,11 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from flybeat import paths
-from flybeat.game.chart import ChartError, chart_from_dict, chart_path, list_charts, load_chart
-from flybeat.game.engine import JudgeEngine, run_inputs
-from flybeat.game.env import RhythmEnv, fixed_chart_source
-from flybeat.game.generator import generate_chart
+from flymax import paths
+from flymax.game.chart import ChartError, chart_from_dict, chart_path, list_charts, load_chart
+from flymax.game.engine import JudgeEngine, run_inputs
+from flymax.game.env import RhythmEnv, fixed_chart_source
+from flymax.game.generator import generate_chart
 
 FIXTURES = sorted((paths.REPO_ROOT / "tests" / "fixtures" / "judge").glob("*.json"))
 

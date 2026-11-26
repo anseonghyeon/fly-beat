@@ -138,7 +138,7 @@ export default function Brain() {
           <p className="muted">불러오는 중…</p>
         ) : !summary.available ? (
           <p className="muted">
-            전처리 결과가 없습니다. <code>python -m flybeat.brain.preprocess</code> 를 먼저
+            전처리 결과가 없습니다. <code>python -m flymax.brain.preprocess</code> 를 먼저
             실행하세요.
           </p>
         ) : (

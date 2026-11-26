@@ -1,13 +1,13 @@
 import numpy as np
 import pytest
 
-from flybeat.agents import checkpoint as ck
-from flybeat.agents.base import eval_charts, evaluate
+from flymax.agents import checkpoint as ck
+from flymax.agents.base import eval_charts, evaluate
 
 
 def test_mode_c_changes_only_kc_mbon_synapses(synthetic_data):
-    from flybeat.agents.dopamine import DopamineAgent, DopamineConfig, train
-    from flybeat.brain.model import Connectome
+    from flymax.agents.dopamine import DopamineAgent, DopamineConfig, train
+    from flymax.brain.model import Connectome
 
     conn = Connectome.load(synthetic_data)
     cid = train(DopamineConfig(profile=synthetic_data, episodes=2, n_envs=2, lr=1.0))
@@ -18,7 +18,7 @@ def test_mode_c_changes_only_kc_mbon_synapses(synthetic_data):
 
     agent = DopamineAgent.load(cid)
     W = agent.brain.sim.W.toarray()
-    from flybeat.brain.model import BrainSim
+    from flymax.brain.model import BrainSim
 
     W_orig = BrainSim(conn).W.toarray()
     diff = np.argwhere(~np.isclose(W, W_orig))

@@ -1,5 +1,5 @@
 /**
- * 결과 화면 (아케이드 연출, fly-beat 고유 스타일).
+ * 결과 화면 (아케이드 연출, flymax-respect-v 고유 스타일).
  * 등급 문자 · 점수 카운트업 · 판정 막대 · FULL COMBO / ALL PERFECT 배지 · 승패
  */
 import { useEffect, useRef, useState } from "react";
@@ -25,7 +25,7 @@ const JUDGES = [
 export const scoreFromStats = (s: Stats) =>
   Math.round((MAX_SCORE * s.score) / Math.max(1, s.total));
 
-/** fly-beat 등급 (정확도 기준) */
+/** flymax-respect-v 등급 (정확도 기준) */
 export function gradeOf(acc: number): string {
   if (acc >= 99) return "S+";
   if (acc >= 95) return "S";

@@ -1,4 +1,4 @@
-# fly-beat 프로젝트 계획
+# flymax-respect-v 프로젝트 계획
 
 > 실제 초파리 커넥톰(MaleCNS v1.0)으로 만든 뇌 모델에게 자체 제작 건반형 리듬게임을 강화학습으로 가르치는 프로젝트.
 > 배포하지 않으며, GitHub에 공개해 누구나 clone 후 **로컬에서** 서버와 웹 UI를 실행할 수 있게 한다.
@@ -168,7 +168,7 @@
   - `/ws/play/{session_id}`: 에이전트 플레이 중 게임 상태와 선택된 뉴런 활동을 스트리밍한다(30~60fps).
   - `/ws/train/{job_id}`: 학습 지표(보상, 정확도)를 실시간으로 보낸다.
 - 학습은 **별도 프로세스**에서 돌려 API 응답을 막지 않는다. 동시 학습 작업 수는 설정으로 제한한다(기본 1).
-- 서버 없이 학습만 돌릴 수 있는 CLI도 제공한다: `python -m flybeat.train --mode C --chart random`.
+- 서버 없이 학습만 돌릴 수 있는 CLI도 제공한다: `python -m flymax.train --mode C --chart random`.
 
 ## 7. 웹 UI (`web/`)
 
@@ -194,7 +194,7 @@
 ## 9. 저장소 구조 (안)
 
 ```
-fly-beat/
+flymax-respect-v/
 ├── plan.md
 ├── README.md                 # 소개, 데이터 출처/라이선스, 실행 방법
 ├── LICENSE                   # 코드 라이선스 (MIT 등, 결정 필요)
@@ -206,7 +206,7 @@ fly-beat/
 ├── charts/                   # 기본 제공 채보 + 음원
 ├── server/
 │   ├── pyproject.toml
-│   └── flybeat/
+│   └── flymax/
 │       ├── api/              # FastAPI 라우터, WebSocket
 │       ├── game/             # 게임 엔진, Gymnasium Env, 채보 생성기
 │       ├── brain/            # 전처리, 희소 행렬, 뉴런 시뮬레이터, 매핑 설정
@@ -230,12 +230,12 @@ fly-beat/
 ## 10. 로컬 실행 흐름 (목표)
 
 ```bash
-git clone https://github.com/<owner>/fly-beat.git
-cd fly-beat
+git clone https://github.com/<owner>/flymax-respect-v.git
+cd flymax-respect-v
 ./scripts/download_data.sh          # 약 1.1GB 다운로드 + 검증
 cd server && python3 -m venv .venv && .venv/bin/pip install -r requirements.lock -e .
-.venv/bin/python -m flybeat.brain.preprocess
-.venv/bin/python -m flybeat.api   # 127.0.0.1:8000
+.venv/bin/python -m flymax.brain.preprocess
+.venv/bin/python -m flymax.api   # 127.0.0.1:8000
 # 다른 터미널
 cd web && npm ci && npm run dev     # http://localhost:5173
 ```

@@ -1,6 +1,6 @@
 # MaleCNS v1.0 데이터 조사 노트 (Phase 0)
 
-조사 스크립트: `python -m flybeat.brain.explore`
+조사 스크립트: `python -m flymax.brain.explore`
 
 ## 1. 파일 구조
 

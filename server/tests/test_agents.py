@@ -1,9 +1,9 @@
 import numpy as np
 import pytest
 
-from flybeat import paths
-from flybeat.agents import checkpoint as ck
-from flybeat.agents.base import eval_charts, evaluate
+from flymax import paths
+from flymax.agents import checkpoint as ck
+from flymax.agents.base import eval_charts, evaluate
 
 
 @pytest.fixture(autouse=True)
@@ -35,7 +35,7 @@ def test_checkpoint_unknown_mode_rejected(tmp_ckpt_dir):
 
 
 def test_mode_a_train_save_load_roundtrip():
-    from flybeat.agents.deep_rl import PPOAgent, PPOConfig, train
+    from flymax.agents.deep_rl import PPOAgent, PPOConfig, train
 
     progress = []
     cid = train(
@@ -50,7 +50,7 @@ def test_mode_a_train_save_load_roundtrip():
 
 
 def test_mode_a_stop_flag():
-    from flybeat.agents.deep_rl import PPOConfig, train
+    from flymax.agents.deep_rl import PPOConfig, train
 
     seen = []
     train(

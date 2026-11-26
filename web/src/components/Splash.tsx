@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Logo } from "./Logo";
 
-const KEY = "flybeat.splashShown";
+const KEY = "flymax.splashShown";
 const SHOW_MS = 1400;
 const FADE_MS = 700;
 

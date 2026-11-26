@@ -2,8 +2,8 @@ import numpy as np
 import pandas as pd
 import scipy.sparse as sp
 
-from flybeat.brain.model import BrainSim, Connectome, SimConfig, normalized_weights
-from flybeat.brain.preprocess import hop_distance, top_k_inputs
+from flymax.brain.model import BrainSim, Connectome, SimConfig, normalized_weights
+from flymax.brain.preprocess import hop_distance, top_k_inputs
 
 
 def tiny_connectome() -> Connectome:

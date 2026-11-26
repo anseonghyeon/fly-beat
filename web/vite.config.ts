@@ -4,7 +4,7 @@ import { defineConfig } from "vitest/config";
 
 // 빌드 결과물에만 CSP 를 넣는다 (개발 서버는 HMR 용 인라인 스크립트가 필요).
 const csp: Plugin = {
-  name: "flybeat-csp",
+  name: "flymax-csp",
   apply: "build",
   transformIndexHtml(html) {
     const policy =

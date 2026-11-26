@@ -1,6 +1,6 @@
 # 음원 출처
 
-이 폴더의 음원은 모두 재배포가 허용된 라이선스입니다. 채보(`charts/*.json`)는 `python -m flybeat.game.autochart` 로 자동 생성했습니다.
+이 폴더의 음원은 모두 재배포가 허용된 라이선스입니다. 채보(`charts/*.json`)는 `python -m flymax.game.autochart` 로 자동 생성했습니다.
 
 | 파일 | 곡 | 작곡 | 라이선스 | 원본 |
 |---|---|---|---|---|

@@ -1,6 +1,6 @@
 /**
  * 리듬게임 판정 엔진 (사람 플레이용 TS 구현).
- * 기준 구현은 server/flybeat/game/engine.py 이며, 규칙을 바꿀 때는 두 파일을 함께 바꾼다.
+ * 기준 구현은 server/flymax/game/engine.py 이며, 규칙을 바꿀 때는 두 파일을 함께 바꾼다.
  * tests/fixtures/judge/*.json 으로 두 구현의 결과가 같은지 검증한다.
  */
 import {
